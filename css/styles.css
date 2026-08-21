@@ -140,7 +140,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-img { max-width: 100%; }
+/* Artwork is part of the interface, not something to drag into a new tab.
+   This also keeps a missed click from leaving a blue selection wash over the
+   meadow. Reading copy remains selectable where it is useful. */
+img,
+picture {
+  max-width: 100%;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.boot,
+#meadowRoot,
+#fieldTripRoot {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Recruiters can still copy project details, contact information and longer
+   explanations from the windows that are meant for reading. */
+#meadowRoot .win__body,
+#fieldTripRoot .ft-sheet__body {
+  user-select: text;
+  -webkit-user-select: text;
+}
 
 a { color: var(--accent-ink); }
 html.dark a { color: var(--accent); }
