@@ -4,2573 +4,393 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>welcome to tabish's meadow</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <title>Tabish Navaid | Software Engineering &amp; Product Portfolio</title>
+  <meta name="description"
+    content="Tabish Navaid is a CS and mathematics student at Whitman College building accessible web apps, civic tools, and browser games. Explore projects and experience." />
+  <meta name="author" content="Tabish Navaid" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#cbeeff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
+  <link rel="canonical" href="https://www.tabishnavaid.dev/" />
+
+  <link rel="icon" href="/assets/images/opt/peeking-profile.png?v=20260821" type="image/png" />
+
+  <meta property="og:type" content="profile" />
+  <meta property="og:site_name" content="Tabish Navaid" />
+  <meta property="profile:first_name" content="Tabish" />
+  <meta property="profile:last_name" content="Navaid" />
+  <meta property="og:title" content="Tabish Navaid | Software Engineering &amp; Product Portfolio" />
+  <meta property="og:description"
+    content="CS and mathematics student building accessible web apps, civic tools, and browser games. Choose a concise brief, an illustrated desktop, or a walkable pixel village." />
+  <meta property="og:url" content="https://www.tabishnavaid.dev/" />
+  <meta property="og:image" content="https://www.tabishnavaid.dev/assets/images/og-card.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="An illustrated meadow with a paper desktop window reading “hi! i’m tabish”." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Tabish Navaid | Software Engineering &amp; Product Portfolio" />
+  <meta name="twitter:description"
+    content="Accessible web apps, civic tools, and browser games, presented three different ways." />
+  <meta name="twitter:image" content="https://www.tabishnavaid.dev/assets/images/og-card.jpg" />
+  <meta name="twitter:image:alt" content="An illustrated meadow with a paper desktop window reading “hi! i’m tabish”." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --sky-top-day: #cbeeff;
-      --sky-bot-day: #f1faf4;
-      --sky-top-dusk: #ffd8b5;
-      --sky-bot-dusk: #f7c7ab;
-      --sky-top-night: #111827;
-      --sky-bot-night: #243b5a;
-
-      --grass-far-day: #b8cb8a;
-      --grass-near-day: #9fbd76;
-      --grass-far-dusk: #a4b978;
-      --grass-near-dusk: #879f63;
-      --grass-far-night: #223850;
-      --grass-near-night: #182a3f;
-
-      --win-bg-day: #fdfaf2;
-      --win-header-day: #2d2c29;
-      --win-text-day: #2d2c29;
-      --win-border-day: #2d2c29;
-
-      --win-bg-night: #17233a;
-      --win-header-night: #101827;
-      --win-text-night: #f0f4fb;
-      --win-border-night: #eaf6ff;
-
-      --accent-day: #d96e34;
-      --accent-night: #aef0ff;
-
-      --font-display: 'Quicksand', sans-serif;
-      --font-body: 'Nunito', sans-serif;
-      --font-mono: 'Space Mono', monospace;
-
-      --sky-top: var(--sky-top-day);
-      --sky-bot: var(--sky-bot-day);
-      --grass-far: var(--grass-far-day);
-      --grass-near: var(--grass-near-day);
-      --win-bg: var(--win-bg-day);
-      --win-header: var(--win-header-day);
-      --win-text: var(--win-text-day);
-      --win-border: var(--win-border-day);
-      --accent: var(--accent-day);
-      --theme-progress: 0;
-      --dusk-opacity: 0;
-      --night-opacity: 0;
-      --star-opacity: 0;
-      --cloud-opacity: 0.72;
-      --firefly-opacity: 0;
-      --sun-opacity: 1;
-      --moon-opacity: 0;
-      --sun-scale: 1;
-      --moon-scale: 0.85;
-      --sun-x: 0px;
-      --sun-y: 0px;
-      --moon-x: 28px;
-      --moon-y: 16px;
-      --scene-shadow: rgba(49, 67, 76, 0.17);
-      --scene-shadow-strong: rgba(36, 43, 47, 0.2);
-    }
-
-    html.dark {
-      --sky-top: var(--sky-top-night);
-      --sky-bot: var(--sky-bot-night);
-      --grass-far: var(--grass-far-night);
-      --grass-near: var(--grass-near-night);
-      --win-bg: var(--win-bg-night);
-      --win-header: var(--win-header-night);
-      --win-text: var(--win-text-night);
-      --win-border: var(--win-border-night);
-      --accent: var(--accent-night);
-      --scene-shadow: rgba(5, 10, 22, 0.38);
-      --scene-shadow-strong: rgba(5, 10, 22, 0.5);
-    }
-
-    /* Accessibility: Focus outlines */
-    button:focus-visible,
-    a:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    /* ---------- Noise / Paper texture overlay ---------- */
-    .noise-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 9999;
-      pointer-events: none;
-      opacity: 0.035;
-      mix-blend-mode: multiply;
-    }
-
-    html.dark .noise-overlay {
-      opacity: 0.05;
-      mix-blend-mode: overlay;
-    }
-
-    /* ---------- Window Details ---------- */
-    .win-sticker {
-      position: absolute;
-      bottom: -9px;
-      right: 34px;
-      width: 34px;
-      height: 34px;
-      z-index: 25;
-      pointer-events: none;
-      transform: rotate(-9deg);
-      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.07));
-      transition: transform 0.5s;
-    }
-
-    .desktop-window:hover .win-sticker {
-      transform: rotate(-3deg) translateY(-1px);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: var(--font-body);
-    }
-
-    body {
-      position: relative;
-      background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-top) 58%, var(--sky-bot) 78%, var(--sky-bot) 100%);
-      transition: background 0.6s ease;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: var(--dusk-opacity);
-      background:
-        radial-gradient(circle at 78% 15%, rgba(255, 205, 129, 0.42), transparent 24%),
-        linear-gradient(to bottom, rgba(255, 193, 143, 0.24), rgba(255, 236, 186, 0.12) 48%, transparent 74%);
-      transition: opacity 0.6s ease;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: calc(0.08 + (var(--night-opacity) * 0.1));
-      background:
-        radial-gradient(circle at 18% 78%, rgba(255, 255, 255, 0.72), transparent 15%),
-        radial-gradient(circle at 81% 56%, rgba(255, 255, 255, 0.56), transparent 18%),
-        radial-gradient(circle at 50% 32%, rgba(255, 236, 200, 0.32), transparent 26%);
-      filter: blur(18px);
-      transition: opacity 0.6s ease;
-    }
-
-    /* ---------- Stars (night only) ---------- */
-    .stars {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: var(--star-opacity);
-      transition: opacity 0.6s ease;
-    }
-
-    .star {
-      position: absolute;
-      background: #fff;
-      border-radius: 50%;
-      animation: twinkle 3s ease-in-out infinite;
-    }
-
-    @keyframes twinkle {
-
-      0%,
-      100% {
-        opacity: 0.25;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
-    .celestial-control {
-      position: absolute;
-      top: 9%;
-      right: 10%;
-      width: 62px;
-      height: 62px;
-      border: 0;
-      padding: 0;
-      background: transparent;
-      border-radius: 50%;
-      cursor: grab;
-      z-index: 12;
-      touch-action: none;
-    }
-
-    .celestial-control:active,
-    .celestial-control.dragging {
-      cursor: grabbing;
-    }
-
-    .celestial-control:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 8px;
-    }
-
-    .moon,
-    .sun {
-      position: absolute;
-      inset: 0;
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      transition: opacity 0.6s ease, transform 0.6s ease;
-      pointer-events: none;
-    }
-
-    .sun {
-      background: radial-gradient(circle at 35% 35%, #fff7d6, #ffd166 60%, #ffb648);
-      box-shadow: 0 0 40px 10px rgba(255, 209, 102, calc(0.25 + (var(--sun-opacity) * 0.35)));
-      opacity: var(--sun-opacity);
-      transform: translate(var(--sun-x), var(--sun-y)) scale(var(--sun-scale));
-    }
-
-    .moon {
-      background: radial-gradient(circle at 35% 35%, #fdfdff, #d8e3f5 55%, #b8c6e6);
-      box-shadow: 0 0 30px 8px rgba(184, 198, 230, 0.5);
-      opacity: var(--moon-opacity);
-      transform: translate(var(--moon-x), var(--moon-y)) scale(var(--moon-scale));
-    }
-
-    /* craters */
-    .moon::before,
-    .moon::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(150, 165, 200, 0.5);
-    }
-
-    .moon::before {
-      width: 14px;
-      height: 14px;
-      top: 14px;
-      left: 16px;
-    }
-
-    .moon::after {
-      width: 9px;
-      height: 9px;
-      top: 38px;
-      left: 40px;
-    }
-
-    /* ---------- Clouds (day) ---------- */
-    .cloud {
-      position: absolute;
-      opacity: var(--cloud-opacity);
-      transition: opacity 0.6s ease;
-      filter: drop-shadow(0 12px 18px rgba(75, 132, 160, 0.09));
-    }
-
-    .cloud svg {
-      display: block;
-    }
-
-    /* ---------- Fireflies (night) ---------- */
-    .firefly {
-      position: absolute;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #fff6b0;
-      box-shadow: 0 0 8px 3px rgba(255, 246, 176, 0.8);
-      opacity: var(--firefly-opacity);
-      transition: opacity 0.6s ease;
-      animation: float-firefly 8s ease-in-out infinite;
-    }
-
-    @keyframes float-firefly {
-
-      0%,
-      100% {
-        transform: translate(0, 0);
-        opacity: calc(var(--firefly-opacity) * 0.35);
-      }
-
-      25% {
-        transform: translate(20px, -15px);
-        opacity: var(--firefly-opacity);
-      }
-
-      50% {
-        transform: translate(-10px, -30px);
-        opacity: calc(var(--firefly-opacity) * 0.55);
-      }
-
-      75% {
-        transform: translate(15px, -10px);
-        opacity: var(--firefly-opacity);
-      }
-    }
-
-    /* ---------- Grass ---------- */
-    .grass-layer {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      transition: fill 0.6s ease;
-    }
-
-    .grass-layer path {
-      filter: drop-shadow(0 -10px 18px rgba(80, 128, 80, 0.08));
-    }
-
-    .grass-far {
-      bottom: 0;
-      height: 22%;
-      z-index: 1;
-    }
-
-    .grass-near {
-      bottom: 0;
-      height: 16%;
-      z-index: 3;
-    }
-
-    .grass-far path,
-    .grass-near path {
-      transition: fill 0.6s ease;
-    }
-
-    /* dandelions / fireflies sit between layers */
-    .meadow-deco {
-      position: absolute;
-      bottom: 6%;
-      z-index: 2;
-      opacity: 0.55;
-      font-size: 16px;
-      transition: opacity 0.6s ease;
-    }
-
-    .dandelion {
-      opacity: calc(0.55 * (1 - var(--night-opacity)));
-    }
-
-    /* ---------- Top bar icons ---------- */
-    .topbar {
-      position: absolute;
-      top: 22px;
-      left: 28px;
-      z-index: 50;
-      display: flex;
-      gap: 11px;
-    }
-
-    .toggle-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      border: 1.5px solid var(--win-border);
-      background: color-mix(in srgb, var(--win-bg) 88%, transparent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 18px;
-      box-shadow: 2px 3px 0 var(--scene-shadow);
-      transition: background 0.4s, border-color 0.4s, transform 0.16s ease, box-shadow 0.16s ease;
-      color: var(--win-text);
-    }
-
-    .toggle-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 3px 4px 0 var(--scene-shadow);
-    }
-
-    .toggle-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12);
-    }
-
-    #themeToggle,
-    #sfxToggle {
-      border: 0;
-      background: transparent;
-      box-shadow: none;
-      padding: 0;
-    }
-
-    #themeToggle:hover,
-    #themeToggle:active,
-    #sfxToggle:hover,
-    #sfxToggle:active {
-      box-shadow: none;
-    }
-
-    .theme-toggle-img,
-    .sound-toggle-img {
-      width: 150px;
-      height: 150px;
-      object-fit: contain;
-      display: block;
-      pointer-events: none;
-    }
-
-    /* ---------- Peeking profile mascot ---------- */
-    .profile-peek-wrap {
-      position: absolute;
-      top: -170px;
-      left: 40px;
-      width: 250px;
-      height: 250px;
-      z-index: 24;
-      border: 0;
-      padding: 0;
-      background: transparent;
-      cursor: pointer;
-      appearance: none;
-      line-height: 0;
-      -webkit-tap-highlight-color: transparent;
-      filter: drop-shadow(0 9px 11px rgba(0, 0, 0, 0.16));
-      transform: translateY(0);
-      transition: transform 0.62s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s;
-    }
-
-    .profile-peek-wrap:hover,
-    .profile-peek-wrap:focus-visible {
-      filter: drop-shadow(0 10px 13px rgba(0, 0, 0, 0.22));
-    }
-
-    .profile-peek-wrap.is-hiding {
-      transform: translateY(150px);
-      pointer-events: none;
-    }
-
-    .profile-peek-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      background: transparent;
-      transform: scale(1.55) translateY(2px);
-      transform-origin: center bottom;
-      animation: profile-peek-bob 3.4s ease-in-out infinite;
-    }
-
-    .profile-peek-wrap.is-hiding .profile-peek-img {
-      animation-play-state: paused;
-    }
-
-    .profile-peek-message {
-      position: absolute;
-      top: -62px;
-      left: 138px;
-      padding: 4px 9px;
-      border: 1.5px solid var(--win-border);
-      border-radius: 999px;
-      background: var(--win-bg);
-      color: var(--win-text);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      line-height: 1;
-      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-      opacity: 0;
-      transform: translateY(4px);
-      pointer-events: none;
-      transition: opacity 0.18s ease, transform 0.18s ease, background 0.5s, border-color 0.5s, color 0.5s;
-      z-index: 35;
-    }
-
-    .desktop-window.profile-peek-hiding .profile-peek-message,
-    .desktop-window.profile-peek-talking .profile-peek-message {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    @keyframes profile-peek-bob {
-
-      0%,
-      100% {
-        transform: translateY(0);
-      }
-
-      50% {
-        transform: translateY(-2px);
-      }
-    }
-
-    /* ---------- Desktop window ---------- */
-    .desktop-window {
-      position: absolute;
-      top: 112px;
-      left: calc(50% + 14px);
-      transform: translateX(-50%);
-      width: min(930px, 86vw);
-      background: var(--win-bg);
-      border: 2.5px solid var(--win-border);
-      border-radius: 15px;
-      box-shadow: 10px 13px 0 var(--scene-shadow);
-      overflow: visible;
-      z-index: 20;
-      transition: background 0.5s, border-color 0.5s, color 0.5s, box-shadow 0.5s;
-      color: var(--win-text);
-    }
-
-    .desktop-window::before {
-      content: '';
-      position: absolute;
-      inset: 58px 28px 24px;
-      border-radius: 22px;
-      background:
-        radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 28%),
-        linear-gradient(145deg, color-mix(in srgb, var(--win-bg) 70%, white 30%), color-mix(in srgb, var(--win-bg) 92%, var(--accent) 8%));
-      opacity: 0.36;
-      pointer-events: none;
-      z-index: 0;
-      transition: opacity 0.5s, background 0.5s;
-    }
-
-    html.dark .desktop-window::before {
-      opacity: 0.22;
-    }
-
-    .win-header {
-      background: var(--win-header);
-      color: #fdfdfd;
-      font-family: var(--font-mono);
-      font-size: 14px;
-      padding: 12px 18px;
-      min-height: 46px;
-      border-radius: 11px 11px 0 0;
-      position: relative;
-      z-index: 30;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background 0.5s;
-    }
-
-    .win-header .dots {
-      display: flex;
-      gap: 6px;
-      margin-left: auto;
-    }
-
-    .win-header .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.25);
-    }
-
-    .win-body {
-      min-height: 430px;
-      padding: 58px 58px 78px;
-      text-align: center;
-      position: relative;
-      z-index: 25;
-      background: var(--win-bg);
-      border-radius: 0 0 12px 12px;
-      transition: background 0.5s;
-    }
-
-    .hero-group {
-      width: min(820px, 100%);
-      margin: 0 auto;
-      padding: 6px 0 0;
-      position: relative;
-    }
-
-    .hi-title {
-      font-family: var(--font-body);
-      font-weight: 400;
-      font-size: clamp(54px, 5.6vw, 78px);
-      margin: 0 0 18px;
-      line-height: 0.95;
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .hi-title .accent {
-      color: var(--accent);
-      font-weight: 500;
-    }
-
-    .win-doodle {
-      position: absolute;
-      bottom: 20px;
-      right: 22px;
-      width: 38px;
-      height: 38px;
-      opacity: 0.55;
-      pointer-events: none;
-      transition: opacity 0.4s;
-    }
-
-    .desktop-window:hover .win-doodle {
-      opacity: 0.85;
-    }
-
-    .tagline {
-      font-size: clamp(20px, 2.1vw, 28px);
-      line-height: 1.28;
-      opacity: 0.82;
-      margin: 0;
-      font-family: var(--font-body);
-      font-weight: 400;
-      max-width: 760px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .icon-row {
-      display: flex;
-      justify-content: center;
-      gap: clamp(28px, 4.2vw, 56px);
-      flex-wrap: wrap;
-      align-items: flex-start;
-      margin-top: 0;
-      padding-top: 52px;
-    }
-
-    .icon-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      border: none;
-      background: none;
-      color: inherit;
-      font-family: var(--font-mono);
-      font-size: 16px;
-      font-weight: 700;
-      min-width: 108px;
-      padding: 3px;
-      -webkit-tap-highlight-color: transparent;
-      transition: color 0.25s ease, transform 0.25s ease;
-    }
-
-    .icon-btn:hover {
-      color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .icon-circle {
-      width: 102px;
-      height: 102px;
-      border-radius: 20px;
-      border: 2px solid var(--win-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--win-bg);
-      box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.1), inset 0 0 0 5px rgba(255, 255, 255, 0.18);
-      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.4s, border-color 0.4s;
-    }
-
-    .icon-btn:hover .icon-circle {
-      transform: translateY(-1px);
-      box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.13), inset 0 0 0 5px rgba(255, 255, 255, 0.2);
-      background: rgba(217, 110, 52, 0.06);
-      /* subtle terracotta tint */
-    }
-
-    html.dark .icon-btn:hover .icon-circle {
-      background: rgba(174, 240, 255, 0.06);
-      /* subtle neon blue tint */
-    }
-
-    .icon-btn:active .icon-circle {
-      transform: translateY(1px);
-      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.12);
-    }
-
-    /* Icon SVG styling */
-    .icon-circle svg {
-      width: 60px;
-      height: 60px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      display: block;
-      transition: stroke 0.4s;
-    }
-
-    .custom-doodle-icon {
-      width: 300px;
-      height: 300px;
-      object-fit: contain;
-      display: block;
-      background: transparent;
-      transition: transform 0.22s ease, filter 0.22s ease;
-    }
-
-    .icon-circle.custom-doodle-frame {
-      border-color: transparent;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .icon-btn:hover .custom-doodle-frame {
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .icon-btn:hover .custom-doodle-icon {
-      transform: translateY(-1px);
-      filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.08));
-    }
-
-    /* ---------- Popup windows ---------- */
-    .popup {
-      position: absolute;
-      width: min(520px, 86vw);
-      max-height: 70vh;
-      background: var(--win-bg);
-      border: 2.5px solid var(--win-border);
-      border-radius: 16px;
-      box-shadow: 9px 11px 0 var(--scene-shadow-strong);
-      z-index: 100;
-      color: var(--win-text);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      transition: background 0.5s, border-color 0.5s, color 0.5s, box-shadow 0.5s;
-    }
-
-    .popup.open {
-      display: flex;
-    }
-
-    .popup-header {
-      background: var(--win-header);
-      color: #fdfdfd;
-      font-family: var(--font-mono);
-      font-size: 14px;
-      padding: 11px 16px;
-      border-radius: 12px 12px 0 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: grab;
-      user-select: none;
-      transition: background 0.5s;
-    }
-
-    .popup-header:active {
-      cursor: grabbing;
-    }
-
-    .popup-close {
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      background: none;
-      border: none;
-      color: #fdfdfd;
-      font-size: 14px;
-      padding: 2px 6px;
-      border-radius: 6px;
-    }
-
-    .popup-close:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .popup-body {
-      padding: 22px 26px;
-      overflow-y: auto;
-      font-family: var(--font-body);
-      font-size: 15px;
-      line-height: 1.6;
-      background:
-        linear-gradient(180deg, color-mix(in srgb, var(--win-bg) 96%, white 4%), var(--win-bg));
-    }
-
-    .popup-body h3 {
-      font-family: var(--font-display);
-      font-size: 22px;
-      margin: 0 0 4px;
-      color: var(--accent);
-    }
-
-    .popup-body .sub {
-      opacity: 0.7;
-      font-size: 14px;
-      margin: 0 0 14px;
-    }
-
-    .popup-body ul {
-      padding-left: 22px;
-      margin: 10px 0;
-    }
-
-    .popup-body a {
-      color: var(--accent);
-      text-decoration: underline;
-    }
-
-    .popup-body .label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      opacity: 0.55;
-      margin: 18px 0 8px;
-    }
-
-    .about-popup {
-      width: min(760px, 90vw);
-    }
-
-    .about-popup .popup-body {
-      padding: 0;
-    }
-
-    .about-hero {
-      display: grid;
-      grid-template-columns: 178px 1fr;
-      align-items: center;
-      gap: 30px;
-      padding: 34px 38px 32px;
-      border-bottom: 1.5px solid color-mix(in srgb, var(--win-border) 18%, transparent);
-    }
-
-    .about-profile-img {
-      width: 220px;
-      height: 250px;
-      object-fit: contain;
-      filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.12));
-      display: block;
-    }
-
-    .about-hero-copy h3 {
-      font-size: clamp(34px, 6vw, 54px);
-      line-height: 1;
-      margin: 0 0 10px;
-    }
-
-    .about-hero-copy .sub {
-      font-size: 18px;
-      line-height: 1.45;
-      margin: 0;
-      opacity: 0.78;
-    }
-
-    .about-content {
-      padding: 26px 38px 34px;
-    }
-
-    .about-content .intro {
-      font-size: 17px;
-      line-height: 1.65;
-      margin-top: 0;
-    }
-
-    .about-detail {
-      border-left: 4px solid color-mix(in srgb, var(--accent) 34%, transparent);
-      padding-left: 16px;
-      margin: 8px 0 14px;
-    }
-
-    @media (max-width: 640px) {
-      .about-hero {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        text-align: center;
-        gap: 18px;
-        padding: 28px 22px 24px;
-      }
-
-      .about-profile-img {
-        width: 148px;
-        height: 148px;
-      }
-
-      .about-content {
-        padding: 22px;
-      }
-    }
-
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .chip {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      border: 1.5px solid var(--win-border);
-      border-radius: 999px;
-      padding: 5px 12px;
-    }
-
-    /* ---------- Work Popup Cards ---------- */
-    .work-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-top: 10px;
-    }
-
-    .work-card {
-      background: color-mix(in srgb, var(--win-bg) 95%, white 5%);
-      border: 1.5px solid var(--win-border);
-      border-radius: 12px;
-      padding: 14px 18px;
-      box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.06);
-      display: flex;
-      gap: 14px;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .work-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    .work-card-icon {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent);
-    }
-
-    .work-card-icon svg {
-      width: 100%;
-      height: 100%;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2.2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .work-card-content {
-      flex-grow: 1;
-    }
-
-    .work-card-title {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 15.5px;
-      margin: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .work-card-title span.title-text {
-      color: var(--win-text);
-    }
-
-    .work-card-title span.org-text {
-      font-size: 13.5px;
-      font-weight: 600;
-      opacity: 0.85;
-    }
-
-    .work-card-title span.date-text {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 400;
-      opacity: 0.6;
-      margin-left: auto;
-    }
-
-    .work-card-desc {
-      font-size: 13.5px;
-      line-height: 1.5;
-      margin: 6px 0 10px;
-      opacity: 0.9;
-    }
-
-    .work-card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .work-tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      border: 1px solid var(--win-border);
-      border-radius: 999px;
-      padding: 2px 8px;
-      opacity: 0.8;
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    html.dark .work-tag {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .work-card:hover {
-        transform: none !important;
-      }
-    }
-
-    #popup-links {
-      width: min(500px, 88vw);
-    }
-
-    #popup-links .popup-body {
-      padding: 24px 26px 22px;
-    }
-
-    #popup-links .links-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(135px, 1fr));
-      gap: 18px;
-      align-items: stretch;
-      justify-items: stretch;
-      padding: 0;
-    }
-
-    #popup-links .link-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      min-height: 154px;
-      border: 0;
-      border-radius: 18px;
-      padding: 16px 14px 14px;
-      text-decoration: none;
-      color: var(--win-text);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
-      background: transparent;
-      box-shadow: none;
-      transition:
-        transform 0.18s ease,
-        color 0.25s ease;
-    }
-
-    #popup-links .popup-body a.link-pill,
-    #popup-links .link-pill span {
-      text-decoration: none;
-    }
-
-    #popup-links .link-pill:hover,
-    #popup-links .link-pill:focus-visible {
-      transform: translateY(-2px);
-      color: var(--accent);
-    }
-
-    #popup-links .link-pill:focus-visible {
-      outline: 3px solid color-mix(in srgb, var(--accent) 58%, transparent);
-      outline-offset: 3px;
-    }
-
-    #popup-links .link-icon-img {
-      width: 270px;
-      height: 270px;
-      object-fit: contain;
-      display: block;
-      flex: 0 0 auto;
-      pointer-events: none;
-      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.08));
-      transition: transform 0.18s ease, filter 0.18s ease;
-    }
-
-    #popup-links .link-pill:hover .link-icon-img,
-    #popup-links .link-pill:focus-visible .link-icon-img {
-      transform: translateY(-1px) rotate(-1deg);
-      filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, 0.1));
-    }
-
-    #popup-links .link-pill span {
-      display: block;
-      line-height: 1;
-      margin: 0;
-      color: inherit;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      #popup-links .link-pill,
-      #popup-links .link-pill:hover,
-      #popup-links .link-pill:focus-visible,
-      #popup-links .link-pill:hover .link-icon-img,
-      #popup-links .link-pill:focus-visible .link-icon-img {
-        transform: none !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    #popup-links .links-note {
-      margin: 20px auto 0;
-      max-width: 360px;
-      text-align: center;
-      font-family: var(--font-body);
-      font-size: 14px;
-      line-height: 1.35;
-      opacity: 0.72;
-      padding: 9px 14px;
-      border: 1.5px dashed color-mix(in srgb, var(--win-border) 55%, transparent);
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--win-bg) 96%, var(--accent) 4%);
-    }
-
-    @media (max-width: 480px) {
-      #popup-links .popup-body {
-        padding: 20px;
-      }
-
-      #popup-links .links-grid {
-        grid-template-columns: repeat(2, minmax(110px, 1fr));
-        gap: 5px;
-      }
-
-      #popup-links .link-pill {
-        min-height: 132px;
-        padding: 12px;
-        font-size: 13px;
-      }
-
-      #popup-links .link-icon-img {
-        width: 92px;
-        height: 92px;
-      }
-
-      #popup-links .links-note {
-        font-size: 13px;
-        margin-top: 16px;
-      }
-    }
-
-    .accordion {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .accordion-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      text-align: left;
-      background: color-mix(in srgb, var(--win-bg) 96%, white 4%);
-      color: var(--win-text);
-      border: 1.5px solid var(--win-border);
-      border-radius: 10px;
-      padding: 12px 16px;
-      cursor: pointer;
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 15px;
-      transition: background 0.4s, border-color 0.4s, transform 0.16s ease;
-    }
-
-    .accordion-item:hover {
-      background: rgba(255, 157, 77, 0.08);
-      transform: translateX(2px);
-    }
-
-    .accordion-icon {
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--accent);
-      flex-shrink: 0;
-      margin-left: 12px;
-      transition: transform 0.25s ease;
-    }
-
-    .accordion-item.open .accordion-icon {
-      transform: rotate(45deg);
-    }
-
-    .accordion-panel {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.3s ease, padding 0.3s ease;
-      padding: 0 16px;
-      font-size: 14px;
-      opacity: 0.85;
-    }
-
-    .accordion-panel p {
-      margin: 10px 0;
-    }
-
-    .accordion-panel.open {
-      max-height: 200px;
-    }
-
-    .contact-box {
-      text-align: center;
-      padding: 6px 0;
-    }
-
-    .mail-btn {
-      display: inline-block;
-      margin-top: 14px;
-      background: var(--accent);
-      font-family: var(--font-display);
-      font-weight: 700;
-      padding: 10px 22px;
-      border-radius: 999px;
-      text-decoration: none;
-      box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
-    }
-
-    .popup-body a.mail-btn {
-      color: #2c2c2c;
-      text-decoration: none;
-    }
-
-    /* ---------- Cat sprite ---------- */
-    .cat-track {
-      position: absolute;
-      bottom: 6.2%;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .cat {
-      position: absolute;
-      right: 2.2%;
-      bottom: -52px;
-      width: 205px;
-      height: 205px;
-      animation: cat-idle 4.8s ease-in-out infinite;
-      pointer-events: auto;
-      cursor: pointer;
-      border-radius: 50%;
-      filter: drop-shadow(0 7px 8px rgba(45, 72, 50, 0.15));
-      transition: filter 0.3s ease, transform 0.3s ease;
-    }
-
-    .meadow-cat-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      background: transparent;
-      pointer-events: none;
-    }
-
-    .cat:hover,
-    .cat:focus-visible {
-      filter: drop-shadow(0 8px 10px rgba(45, 72, 50, 0.22));
-    }
-
-    .cat.music-playing {
-      filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 38%, transparent));
-    }
-
-    /* ---------- Cat Speech Bubble ---------- */
-    .cat-bubble {
-      position: absolute;
-      bottom: 158px;
-      background: var(--win-bg);
-      color: var(--win-text);
-      border: 1.5px solid var(--win-border);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      white-space: nowrap;
-      box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.12);
-      z-index: 50;
-      pointer-events: none;
-      opacity: 0;
-      transform: translate(-50%, 10px);
-      transition: opacity 0.3s, transform 0.3s, background 0.5s, border-color 0.5s, color 0.5s;
-    }
-
-    .cat-bubble.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-
-    .cat-bubble::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 6px 6px 0;
-      border-style: solid;
-      border-color: var(--win-bg) transparent;
-      display: block;
-      width: 0;
-      transition: border-color 0.5s;
-    }
-
-    .cat-bubble::before {
-      content: '';
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 7px 7px 0;
-      border-style: solid;
-      border-color: var(--win-border) transparent;
-      display: block;
-      width: 0;
-      z-index: -1;
-      transition: border-color 0.5s;
-    }
-
-    @keyframes cat-idle {
-
-      0%,
-      100% {
-        transform: translateY(0);
-      }
-
-      50% {
-        transform: translateY(-2px);
-      }
-    }
-
-    @keyframes music-note-float {
-
-      0%,
-      100% {
-        transform: translateY(0) rotate(-5deg);
-      }
-
-      50% {
-        transform: translateY(-3px) rotate(6deg);
-      }
-    }
-
-    /* ---------- Footer ---------- */
-    .footer {
-      position: absolute;
-      bottom: 14px;
-      left: 0;
-      width: 100%;
-      z-index: 30;
-      text-align: center;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--win-text);
-      opacity: 0.78;
-    }
-
-    /* ---------- Responsive ---------- */
-    @media (max-width: 640px) {
-      .desktop-window {
-        top: 106px;
-        left: 50%;
-        width: min(94vw, 700px);
-      }
-
-      .win-body {
-        min-height: 390px;
-        padding: 34px 18px 54px;
-      }
-
-      .hi-title {
-        font-size: clamp(38px, 11vw, 50px);
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px 12px;
-        margin-bottom: 12px;
-      }
-
-      .tagline {
-        font-size: clamp(17px, 5vw, 22px);
-        line-height: 1.25;
-        max-width: 330px;
-        margin-bottom: 0;
-      }
-
-      .icon-row {
-        gap: 14px 18px;
-        margin-top: 0;
-        padding-top: 34px;
-      }
-
-      .icon-circle {
-        width: 72px;
-        height: 72px;
-      }
-
-      .icon-circle svg {
-        width: 38px;
-        height: 38px;
-      }
-
-      .custom-doodle-icon {
-        width: 128px;
-        height: 116px;
-      }
-
-      .icon-btn {
-        min-width: 78px;
-        font-size: 13px;
-        gap: 8px;
-      }
-
-      .profile-peek-wrap {
-        top: -58px;
-        left: 24px;
-        width: 96px;
-        height: 96px;
-      }
-
-      .profile-peek-wrap.is-hiding {
-        transform: translateY(72px);
-      }
-
-      .profile-peek-message {
-        top: -38px;
-        left: 104px;
-      }
-
-      .win-sticker,
-      .win-doodle {
-        transform: scale(0.82);
-      }
-
-      .popup {
-        width: 92vw;
-        max-height: 75vh;
-      }
-
-    }
-
-    /* reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-
-      .cat,
-      .firefly,
-      .cat.music-playing::after,
-      .profile-peek-wrap,
-      .moon,
-      .sun,
-      body,
-      body::before {
-        animation: none !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css?v=20260821-profilefix2" />
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Tabish Navaid",
+      "url": "https://www.tabishnavaid.dev/",
+      "image": "https://www.tabishnavaid.dev/assets/images/og-card.jpg",
+      "email": "mailto:tabishnavaid06@gmail.com",
+      "description": "Computer science and mathematics student building accessible web apps, civic tools, and browser games.",
+      "affiliation": { "@type": "CollegeOrUniversity", "name": "Whitman College" },
+      "knowsAbout": ["Software engineering", "Product development", "Web accessibility", "Frontend development"],
+      "sameAs": ["https://github.com/TabishNavaid", "https://linkedin.com/in/tabish-navaid"]
+    }
+  </script>
 </head>
 
 <body>
+  <a class="skip-link" href="#modeMain">skip to the content</a>
 
-  <!-- Noise / paper texture overlay -->
-  <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <noscript>
+    <div class="noscript-card">
+      <h1>Tabish Navaid</h1>
+      <p>CS &amp; Math student at Whitman College. Open to software engineering and product internships.
+        The interactive version of this page needs JavaScript.</p>
+      <p>
+        <a href="mailto:tabishnavaid06@gmail.com">tabishnavaid06@gmail.com</a> ·
+        <a href="https://github.com/TabishNavaid">GitHub</a> ·
+        <a href="https://linkedin.com/in/tabish-navaid">LinkedIn</a>
+      </p>
+    </div>
+  </noscript>
+
+  <!-- Paper grain. Decorative. -->
+  <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <filter id="noiseFilter">
       <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
     </filter>
     <rect width="100%" height="100%" filter="url(#noiseFilter)" />
   </svg>
 
-  <!-- Sky decor -->
-  <div class="stars" id="stars"></div>
-  <button class="celestial-control" id="celestialControl" type="button" role="slider" aria-label="Drag to change time of day" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-    <span class="sun" aria-hidden="true"></span>
-    <span class="moon" aria-hidden="true"></span>
-  </button>
+  <!-- ==================== boot + profile chooser ==================== -->
+  <div class="boot" id="boot" hidden>
+    <div class="boot__machine">
+      <div class="boot__bar" aria-hidden="true">
+        <span class="boot__bar-name">tabish.os</span>
+        <span class="boot__dots"><i></i><i></i><i></i></span>
+      </div>
 
-  <!-- Clouds -->
-  <div class="cloud" style="top:14%; left:10%;">
-    <svg width="110" height="46" viewBox="0 0 120 50">
-      <ellipse cx="30" cy="35" rx="30" ry="15" fill="#fff" />
-      <ellipse cx="60" cy="25" rx="35" ry="20" fill="#fff" />
-      <ellipse cx="90" cy="35" rx="28" ry="14" fill="#fff" />
-    </svg>
+      <div class="boot__screen">
+        <p class="boot__startup" id="bootStartup" aria-hidden="true">
+          <span class="boot__sprout">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <path d="M16 27V12M16 15.5Q10 10 16 10M16 19.5Q22 14 16 14" fill="none" stroke="currentColor"
+                stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="boot__typing">starting up<i class="boot__caret"></i></span>
+        </p>
+
+        <section class="chooser" id="chooser" hidden aria-labelledby="chooserTitle">
+          <h1 class="chooser__title" id="chooserTitle">who’s logging in?</h1>
+          <ul class="chooser__list" id="chooserList">
+            <li>
+              <button class="profile" type="button" data-mode="brief">
+                <span class="profile__avatar" aria-hidden="true">
+                  <picture>
+                    <source type="image/webp" srcset="assets/images/opt/the-brief.webp" />
+                    <img src="assets/images/opt/the-brief.png" width="360" height="360" alt=""
+                      decoding="async" />
+                  </picture>
+                </span>
+                <span class="profile__name">The Brief</span>
+                <span class="profile__sub">the quickest route through my work</span>
+              </button>
+            </li>
+            <li>
+              <button class="profile" type="button" data-mode="meadow">
+                <span class="profile__avatar" aria-hidden="true">
+                  <picture>
+                    <source type="image/webp" srcset="assets/images/opt/meadow-desktop.webp" />
+                    <img src="assets/images/opt/meadow-desktop.png" width="360" height="360" alt=""
+                      decoding="async" />
+                  </picture>
+                </span>
+                <span class="profile__name">Meadow Desktop</span>
+                <span class="profile__sub">the original, with windows and one supervisory cat</span>
+              </button>
+            </li>
+            <li>
+              <button class="profile" type="button" data-mode="field-trip">
+                <span class="profile__avatar" aria-hidden="true">
+                  <picture>
+                    <source type="image/webp" srcset="assets/images/opt/field-trip.webp" />
+                    <img src="assets/images/opt/field-trip.png" width="360" height="360" alt=""
+                      decoding="async" />
+                  </picture>
+                </span>
+                <span class="profile__name">Field Trip</span>
+                <span class="profile__sub">walk around, poke at things, find out what I built</span>
+              </button>
+            </li>
+          </ul>
+          <p class="chooser__foot">
+            <span id="chooserHint">arrow keys to move, enter to log in.</span>
+            <span class="chooser__foot-sep" aria-hidden="true">·</span>
+            <span>you can switch profiles from inside any of them.</span>
+          </p>
+        </section>
+      </div>
+    </div>
   </div>
-  <div class="cloud" style="top:10%; left:63%;">
-    <svg width="82" height="37" viewBox="0 0 90 40">
-      <ellipse cx="22" cy="28" rx="22" ry="11" fill="#fff" />
-      <ellipse cx="45" cy="18" rx="26" ry="15" fill="#fff" />
-      <ellipse cx="70" cy="28" rx="20" ry="10" fill="#fff" />
-    </svg>
-  </div>
 
-  <!-- Fireflies -->
-  <div class="firefly" style="top:60%; left:15%;"></div>
-  <div class="firefly" style="top:65%; left:30%; animation-delay:1.5s;"></div>
-  <div class="firefly" style="top:58%; left:70%; animation-delay:3s;"></div>
-  <div class="firefly" style="top:70%; left:85%; animation-delay:0.7s;"></div>
-  <div class="firefly" style="top:62%; left:50%; animation-delay:2.2s;"></div>
+  <!-- ==================== mode 2: meadow desktop ==================== -->
+  <div id="meadowRoot" hidden>
+    <div class="scene">
+      <div class="stars" id="stars" aria-hidden="true"></div>
 
-  <!-- Top bar -->
-  <div class="topbar">
-    <button class="toggle-btn" id="themeToggle" title="Toggle day/night" aria-label="Toggle day and night">
-      <img class="theme-toggle-img" id="themeToggleImg" src="assets/images/dark-mode.png" alt="" aria-hidden="true">
+      <svg class="constellation" id="constellation" viewBox="0 0 210 140" aria-hidden="true" focusable="false">
+        <g id="constellationArt"></g>
+      </svg>
+
+      <div class="cloud" style="top:13%; left:9%;" aria-hidden="true">
+        <svg width="112" height="47" viewBox="0 0 120 50" focusable="false">
+          <ellipse cx="30" cy="35" rx="30" ry="15" fill="#fff" />
+          <ellipse cx="60" cy="25" rx="35" ry="20" fill="#fff" />
+          <ellipse cx="90" cy="35" rx="28" ry="14" fill="#fff" />
+        </svg>
+      </div>
+      <div class="cloud" style="top:8%; left:58%;" aria-hidden="true">
+        <svg width="84" height="38" viewBox="0 0 90 40" focusable="false">
+          <ellipse cx="22" cy="28" rx="22" ry="11" fill="#fff" />
+          <ellipse cx="45" cy="18" rx="26" ry="15" fill="#fff" />
+          <ellipse cx="70" cy="28" rx="20" ry="10" fill="#fff" />
+        </svg>
+      </div>
+
+      <div id="fireflies" aria-hidden="true"></div>
+
+      <svg class="grass-layer grass-far" viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden="true"
+        focusable="false">
+        <path d="M0,90 Q360,40 720,80 T1440,70 V200 H0 Z" fill="var(--grass-far)" />
+      </svg>
+
+      <div class="meadow-deco" style="left:13%;" aria-hidden="true">🌼</div>
+      <div class="meadow-deco" style="left:86%; bottom:7.5%;" aria-hidden="true">🌼</div>
+
+      <svg class="grass-layer grass-near" viewBox="0 0 1440 140" preserveAspectRatio="none" aria-hidden="true"
+        focusable="false">
+        <path d="M0,60 Q360,100 720,55 T1440,75 V140 H0 Z" fill="var(--grass-near)" />
+      </svg>
+    </div>
+
+    <div class="topbar">
+      <button class="icon-toggle" id="themeToggle" type="button" aria-label="Switch between day and night">
+        <img id="themeToggleImg" src="assets/images/opt/dark-mode.png" width="280" height="280" alt="" />
+      </button>
+      <button class="icon-toggle" id="soundToggle" type="button" aria-pressed="false"
+        aria-label="Sound effects and music: currently off">
+        <img id="soundToggleImg" src="assets/images/opt/sound-off.png" width="280" height="280" alt="" />
+      </button>
+    </div>
+
+    <!-- Drag the sun. It is a slider, and it drives every colour on the page. -->
+    <button class="celestial" id="celestial" type="button" role="slider" aria-label="Time of day" aria-valuemin="0"
+      aria-valuemax="100" aria-valuenow="0" aria-valuetext="daytime">
+      <span class="sun" aria-hidden="true"></span>
+      <span class="moon" aria-hidden="true"></span>
+      <span class="celestial__hint" aria-hidden="true">drag me</span>
     </button>
-    <button class="toggle-btn" id="sfxToggle" title="Toggle sound" aria-label="Toggle sound effects">
-      <img class="sound-toggle-img" id="sfxToggleImg" src="assets/images/sound-off.png" alt="" aria-hidden="true">
+
+    <!-- the bus that goes to Field Trip. lives in the grass, not on the desk. -->
+    <div class="field-trip-stop" id="fieldTripStop" hidden>
+      <button class="field-trip-stop__bus" id="fieldTripBus" type="button">
+        <span class="field-trip-stop__bubble" aria-hidden="true">next stop?</span>
+        <span class="visually-hidden">Open Field Trip, a pixel town you can walk around</span>
+        <span class="field-trip-stop__art" aria-hidden="true"></span>
+      </button>
+      <span class="field-trip-stop__sign" aria-hidden="true">field trip</span>
+    </div>
+
+    <main class="desktop-window" id="deskWindow">
+      <button class="profile-peek" id="profilePeek" type="button" aria-label="Say hello to Tabish's doodle">
+        <picture>
+          <source id="peekSource" type="image/webp" srcset="assets/images/opt/peeking-profile.webp" />
+          <img id="peekImg" src="assets/images/opt/peeking-profile.png" width="720" height="720" alt=""
+            fetchpriority="high" />
+        </picture>
+      </button>
+      <span class="peek-message" id="peekMessage" aria-hidden="true">brb</span>
+
+      <div class="win-header">
+        home
+        <div class="win-header__right">
+          <div class="dots" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span
+              class="dot"></span></div>
+        </div>
+      </div>
+
+      <div class="win-body">
+        <div class="hero-group">
+          <h1 class="hi-title">hi! i’m <span class="accent">tabish</span></h1>
+          <p class="tagline" id="tagline"></p>
+
+          <nav class="icon-row" aria-label="Desktop">
+            <button class="icon-btn" type="button" data-window="about">
+              <span class="icon-circle">
+                <picture>
+                  <source type="image/webp" srcset="assets/images/opt/icon-about.webp" />
+                  <img class="custom-doodle-icon" src="assets/images/opt/icon-about.png" width="360" height="360"
+                    alt="" />
+                </picture>
+              </span>
+              about
+            </button>
+            <button class="icon-btn" type="button" data-window="links">
+              <span class="icon-circle">
+                <picture>
+                  <source type="image/webp" srcset="assets/images/opt/icon-links.webp" />
+                  <img class="custom-doodle-icon" src="assets/images/opt/icon-links.png" width="360" height="360"
+                    alt="" />
+                </picture>
+              </span>
+              links
+            </button>
+            <button class="icon-btn" type="button" data-window="work">
+              <span class="icon-circle">
+                <picture>
+                  <source type="image/webp" srcset="assets/images/opt/icon-work.webp" />
+                  <img class="custom-doodle-icon" src="assets/images/opt/icon-work.png" width="360" height="360"
+                    alt="" />
+                </picture>
+              </span>
+              work
+            </button>
+            <button class="icon-btn" type="button" data-window="notes">
+              <span class="icon-circle">
+                <picture>
+                  <source type="image/webp" srcset="assets/images/opt/icon-faq.webp" />
+                  <img class="custom-doodle-icon" src="assets/images/opt/icon-faq.png" width="360" height="360"
+                    alt="" />
+                </picture>
+              </span>
+              notes
+            </button>
+            <button class="icon-btn" type="button" data-window="contact">
+              <span class="icon-circle">
+                <picture>
+                  <source type="image/webp" srcset="assets/images/opt/icon-contact.webp" />
+                  <img class="custom-doodle-icon" src="assets/images/opt/icon-contact.png" width="360" height="360"
+                    alt="" />
+                </picture>
+              </span>
+              contact
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <svg class="win-doodle" viewBox="0 0 38 38" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="19" cy="11" rx="3.5" ry="6" />
+          <ellipse cx="27" cy="15" rx="3.5" ry="6" transform="rotate(60 27 15)" />
+          <ellipse cx="27" cy="25" rx="3.5" ry="6" transform="rotate(120 27 25)" />
+          <ellipse cx="19" cy="29" rx="3.5" ry="6" transform="rotate(180 19 29)" />
+          <ellipse cx="11" cy="25" rx="3.5" ry="6" transform="rotate(240 11 25)" />
+          <ellipse cx="11" cy="15" rx="3.5" ry="6" transform="rotate(300 11 15)" />
+          <circle cx="19" cy="20" r="4.5" fill="var(--accent)" stroke="none" opacity="0.6" />
+        </g>
+      </svg>
+
+      <svg class="win-sticker" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <circle cx="16" cy="16" r="14" fill="var(--win-bg)" stroke="var(--win-border)" stroke-width="2.5" />
+        <path d="M16 24V11 M16 14Q11 9 16 9 M16 18Q21 13 16 13" stroke="var(--accent)" stroke-width="2.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </main>
+
+    <!-- The cat. Handles morale. -->
+    <button class="cat" id="cat" type="button" aria-label="Play background music">
+      <picture>
+        <source id="catSource" type="image/webp" srcset="assets/images/opt/cat-morning-no-music.webp" />
+        <img id="catImg" src="assets/images/cat-morning-no-music.gif" width="300" height="300" alt=""
+          decoding="async" />
+      </picture>
     </button>
+    <p class="cat-bubble" id="catBubble" role="status" aria-live="polite"></p>
+
+    <dialog class="win" id="panelDialog" aria-labelledby="panelBarTitle">
+      <div class="win__bar">
+        <span class="win__bar-title" id="panelBarTitle"></span>
+        <button class="win__zoom" type="button" data-zoom aria-pressed="false" aria-label="Maximize window">[ □
+          ]</button>
+        <button class="win__close" type="button" data-close aria-label="Close window">[ x ]</button>
+      </div>
+      <div class="win__body" id="panelBody" tabindex="-1"></div>
+    </dialog>
+
+    <dialog class="win win--child" id="detailDialog" aria-labelledby="detailBarTitle">
+      <div class="win__bar">
+        <span class="win__bar-title" id="detailBarTitle"></span>
+        <button class="win__close" type="button" data-close aria-label="Close project window">[ x ]</button>
+      </div>
+      <div class="win__body" id="detailBody" tabindex="-1"></div>
+    </dialog>
   </div>
 
-  <!-- Desktop window -->
-  <div class="desktop-window">
-    <!-- Profile doodle peeks over window top border -->
-    <button class="profile-peek-wrap" id="profilePeek" type="button" aria-label="Play peek animation">
-      <img class="profile-peek-img" id="profilePeekImg" src="assets/images/peeking-profile.png" alt="" aria-hidden="true">
-    </button>
-    <span class="profile-peek-message" aria-hidden="true">brb</span>
+  <!-- ==================== mode 1: the brief ==================== -->
+  <div id="briefRoot" hidden></div>
 
-    <div class="win-header">
-      home
-      <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-    </div>
-    <div class="win-body">
-      <div class="hero-group">
-        <h1 class="hi-title">hi! i'm <span class="accent">tabish</span></h1>
-        <p class="tagline">front-end developer, tutor, and tool-builder</p>
-        <div class="icon-row">
-          <button class="icon-btn" data-popup="about" aria-label="About Tabish">
-            <span class="icon-circle custom-doodle-frame">
-              <img class="custom-doodle-icon" src="assets/images/icon-about.png" alt="" aria-hidden="true">
-            </span>
-            about
-          </button>
-          <button class="icon-btn" data-popup="links" aria-label="Links and Social Media">
-            <span class="icon-circle custom-doodle-frame">
-              <img class="custom-doodle-icon" src="assets/images/icon-links.png" alt="" aria-hidden="true">
-            </span>
-            links
-          </button>
-          <button class="icon-btn" data-popup="work" aria-label="Work and Projects Portfolio">
-            <span class="icon-circle custom-doodle-frame">
-              <img class="custom-doodle-icon" src="assets/images/icon-work.png" alt="" aria-hidden="true">
-            </span>
-            work
-          </button>
-          <button class="icon-btn" data-popup="faq" aria-label="Notes about Tabish">
-            <span class="icon-circle custom-doodle-frame">
-              <img class="custom-doodle-icon" src="assets/images/icon-faq.png" alt="" aria-hidden="true">
-            </span>
-            notes
-          </button>
-          <button class="icon-btn" data-popup="contact" aria-label="Contact Tabish">
-            <span class="icon-circle custom-doodle-frame">
-              <img class="custom-doodle-icon" src="assets/images/icon-contact.png" alt="" aria-hidden="true">
-            </span>
-            contact
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Window flower doodle -->
-    <svg class="win-doodle" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <g fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <!-- petals -->
-        <ellipse cx="19" cy="11" rx="3.5" ry="6" />
-        <ellipse cx="27" cy="15" rx="3.5" ry="6" transform="rotate(60 27 15)" />
-        <ellipse cx="27" cy="25" rx="3.5" ry="6" transform="rotate(120 27 25)" />
-        <ellipse cx="19" cy="29" rx="3.5" ry="6" transform="rotate(180 19 29)" />
-        <ellipse cx="11" cy="25" rx="3.5" ry="6" transform="rotate(240 11 25)" />
-        <ellipse cx="11" cy="15" rx="3.5" ry="6" transform="rotate(300 11 15)" />
-        <!-- center -->
-        <circle cx="19" cy="20" r="4.5" fill="var(--accent)" stroke="none" opacity="0.6" />
-      </g>
-    </svg>
-
-    <!-- Sprout Sticker -->
-    <svg class="win-sticker" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="16" cy="16" r="14" fill="var(--win-bg)" stroke="var(--win-border)" stroke-width="2.5" />
-      <path d="M16 24V11 M16 14Q11 9 16 9 M16 18Q21 13 16 13" stroke="var(--accent)" stroke-width="2.5" fill="none"
-        stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-  </div>
-
-  <!-- Popups -->
-  <div class="popup about-popup" id="popup-about" style="top:130px; left:8%;">
-    <div class="popup-header"><span>about</span><button class="popup-close" data-close="about"
-        aria-label="Close about popup">[ x ]</button></div>
-    <div class="popup-body">
-      <section class="about-hero">
-        <img class="about-profile-img" src="assets/images/about-profile.png" alt="Portrait doodle of Tabish Navaid">
-        <div class="about-hero-copy">
-          <h3>Tabish Navaid</h3>
-          <p class="sub">CS &amp; Math student @ Whitman College<br />Front-end web &amp; accessibility developer · Former intern @ Movate</p>
-        </div>
-      </section>
-      <div class="about-content">
-        <p class="intro">hi! i'm tabish. i build web things that are clear, practical, and pleasant to use.</p>
-        <ul>
-          <li>build front-end pages, dashboards, and CMS features,</li>
-          <li>work on mapping tools and student-facing web projects,</li>
-          <li>tutor students in CS, math, writing, and technical skills, and</li>
-          <li>help keep student org websites and systems from turning into mystery drawers.</li>
-        </ul>
-        <p>if you are building something useful and need a careful web person, send me an email at <a
-            href="mailto:tabishnavaid06@gmail.com">tabishnavaid06@gmail.com</a>.</p>
-        <p class="label">education</p>
-        <p class="about-detail">Bachelor of Arts in Computer Science &amp; Mathematics<br />Whitman College, Walla Walla, WA · Class of
-          2028<br />GPA: 3.98 · UWC Davis Scholar (Full Scholarship)</p>
-        <p class="label">awards</p>
-        <ul>
-          <li>UWC Davis Scholar (Full Scholarship)</li>
-          <li>Whitman Hackathon Winner · 1st Place</li>
-          <li>Lead ASWC Senator</li>
-        </ul>
-        <p class="label">languages</p>
-        <p>English (fluent), Hindi/Urdu (native), German (conversational)</p>
-        <p class="label">other interests</p>
-        <ul>
-          <li>human-computer interaction and educational tech</li>
-          <li>accessibility advocacy</li>
-          <li>open-source and community-driven projects</li>
-          <li>badminton</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="popup" id="popup-links" style="top:200px; left:30%;">
-    <div class="popup-header"><span>links</span><button class="popup-close" data-close="links"
-        aria-label="Close links popup">[ x ]</button></div>
-    <div class="popup-body">
-      <div class="links-grid">
-        <a class="link-pill" href="https://linkedin.com/in/tabish-navaid" target="_blank" rel="noopener noreferrer"
-          aria-label="Open LinkedIn profile in a new tab">
-          <img class="link-icon-img" src="assets/images/linked-in.png" alt="" aria-hidden="true">
-          <span>linkedin</span>
-        </a>
-        <a class="link-pill" href="https://github.com/TabishNavaid" target="_blank" rel="noopener noreferrer"
-          aria-label="Open GitHub profile in a new tab">
-          <img class="link-icon-img" src="assets/images/github.png" alt="" aria-hidden="true">
-          <span>github</span>
-        </a>
-        <a class="link-pill" href="mailto:tabishnavaid06@gmail.com" aria-label="Email Tabish Navaid">
-          <img class="link-icon-img" src="assets/images/email.png" alt="" aria-hidden="true">
-          <span>email</span>
-        </a>
-        <a class="link-pill" href="tel:+15095932928" aria-label="Call Tabish Navaid">
-          <img class="link-icon-img" src="assets/images/phone.png" alt="" aria-hidden="true">
-          <span>phone</span>
-        </a>
-      </div>
-      <p class="sub links-note">clicking any of these will open a new tab!</p>
-    </div>
-  </div>
-
-  <div class="popup" id="popup-work" style="top:130px; left:45%;">
-    <div class="popup-header"><span>work</span><button class="popup-close" data-close="work"
-        aria-label="Close work popup">[ x ]</button></div>
-    <div class="popup-body">
-      <p><strong>Open to internships and collaborations via my <a
-            href="mailto:tabishnavaid06@gmail.com">email</a>.</strong><br />
-        I like front-end work, accessibility fixes, civic tech, educational tools, and projects that are clear enough for the next person to maintain.</p>
-
-      <p class="label">languages</p>
-      <div class="chip-row">
-        <span class="chip">Python</span><span class="chip">Java</span><span class="chip">C++</span>
-        <span class="chip">JavaScript</span><span class="chip">HTML/CSS</span><span class="chip">SQL</span>
-        <span class="chip">C# / .NET</span>
-      </div>
-
-      <p class="label">frameworks & tools</p>
-      <div class="chip-row" style="margin-bottom: 20px;">
-        <span class="chip">React</span><span class="chip">Next.js</span><span class="chip">Tailwind</span>
-        <span class="chip">PyTorch</span><span class="chip">TensorFlow</span><span class="chip">Supabase</span>
-        <span class="chip">Firebase</span><span class="chip">AWS</span><span class="chip">Docker</span>
-        <span class="chip">Git</span><span class="chip">CircleCI</span><span class="chip">Monsido</span>
-      </div>
-
-      <p class="label">experience</p>
-      <div class="work-grid">
-        <!-- Whitman College TA -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M6 21h12 M12 17v4 M7 8l-3 3l3 3 M17 8l3 3l-3 3" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">Front-End & Accessibility Developer</span>
-              <span class="org-text">@ Whitman College</span>
-              <span class="date-text">Jan 2025–present</span>
-            </h4>
-            <p class="work-card-desc">Refactored 1000+ pages, helped raise accessibility from 70% to 99.6%, and built feature pages plus QA workflows for the college site.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">HTML/CSS</span>
-              <span class="work-tag">Accessibility</span>
-              <span class="work-tag">Monsido</span>
-              <span class="work-tag">QA</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Movate -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path d="M5 8h14 M9 14l-2 2 M11 12h4" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">Software Developer Intern</span>
-              <span class="org-text">@ Movate</span>
-              <span class="date-text">Jun–Aug 2025</span>
-            </h4>
-            <p class="work-card-desc">Built a role-based permission system and dashboard from scratch, turning remote stakeholder scoping into a 10-week delivery plan.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">React</span>
-              <span class="work-tag">Supabase</span>
-              <span class="work-tag">Role-based Auth</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Peer Tutor -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 21c-1.2-1.2-3-2-5-2H2V3h5c2 0 3.8.8 5 2c1.2-1.2 3-2 5-2h5v16h-5c-2 0-3.8.8-5 2z M12 5v16" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">Peer Tutor / TA</span>
-              <span class="org-text">@ Whitman College</span>
-              <span class="date-text">Jan 2025–present</span>
-            </h4>
-            <p class="work-card-desc">Create visual walkthroughs and reusable explanations for Data Structures, Discrete Math, writing, and technical skills. Most tutees reached A-range grades.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">Data Structures</span>
-              <span class="work-tag">Discrete Math</span>
-              <span class="work-tag">Mentoring</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p class="label" style="margin-top: 24px;">projects</p>
-      <div class="work-grid">
-        <!-- Map Project -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M3 6l6-3l6 3l6-3v15l-6 3l-6-3l-6 3V6z M9 3v15 M15 6v15" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">Interactive Downtown Walla Walla Map</span>
-              <span class="date-text">2025</span>
-            </h4>
-            <p class="work-card-desc">Partnered with the Downtown Walla Walla Foundation and Whitman Economics to build a civic map for vacancies, locations, and local business planning.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">Leaflet.js</span>
-              <span class="work-tag">OpenStreetMap/Overpass API</span>
-              <span class="work-tag">GeoJSON</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- SOS -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="4" />
-              <path d="M9 9l-2.5-2.5 M15 9l2.5-2.5 M9 15l-2.5 2.5 M15 15l2.5 2.5" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">SOS (Save Our Souls)</span>
-              <span class="date-text">2025</span>
-            </h4>
-            <p class="work-card-desc">Shipped a gamified lost-and-found platform in under 12 hours with Supabase auth, realtime storage, and an accessible front end. Won 1st place among 10+ teams.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">JS</span>
-              <span class="work-tag">Supabase</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Restaurant -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M17 8h1a3 3 0 0 1 0 6h-1 M2 8h15v7a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z M6 2v3 M10 2v3 M14 2v3" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">Restaurant Management App</span>
-              <span class="date-text">2025</span>
-            </h4>
-            <p class="work-card-desc">Built a Java and MySQL ordering app with role-based accounts, menu CRUD, order tracking, MVC structure, and JUnit coverage for key flows.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">Java</span>
-              <span class="work-tag">MySQL</span>
-              <span class="work-tag">JDBC</span>
-              <span class="work-tag">MVC</span>
-              <span class="work-tag">JUnit</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- This site -->
-        <div class="work-card">
-          <div class="work-card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 22V10 M12 12Q7 7 12 7 M12 15Q17 10 12 10" />
-              <circle cx="12" cy="5" r="3" />
-            </svg>
-          </div>
-          <div class="work-card-content">
-            <h4 class="work-card-title">
-              <span class="title-text">This website!</span>
-              <span class="date-text">2026</span>
-            </h4>
-            <p class="work-card-desc">This cozy desktop portfolio, built as a small web world for my work, links, notes, and one very committed cat.</p>
-            <div class="work-card-tags">
-              <span class="work-tag">HTML</span>
-              <span class="work-tag">CSS</span>
-              <span class="work-tag">JavaScript</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="popup" id="popup-faq" style="top:220px; left:20%;">
-    <div class="popup-header"><span>notes</span><button class="popup-close" data-close="faq"
-        aria-label="Close notes popup">[ x ]</button></div>
-    <div class="popup-body">
-      <div class="accordion">
-        <button class="accordion-item" data-accordion>
-          <span class="accordion-q">cat status</span>
-          <span class="accordion-icon">+</span>
-        </button>
-        <div class="accordion-panel">
-          <p>quality assurance. morale support. occasional foot traffic. every desktop needs someone small judging the hover states.</p>
-        </div>
-
-        <button class="accordion-item" data-accordion>
-          <span class="accordion-q">currently</span>
-          <span class="accordion-icon">+</span>
-        </button>
-        <div class="accordion-panel">
-          <p>studying CS and Math at Whitman, working on the college website, and tutoring students through tricky CS, math, and writing problems.</p>
-        </div>
-
-        <button class="accordion-item" data-accordion>
-          <span class="accordion-q">open to</span>
-          <span class="accordion-icon">+</span>
-        </button>
-        <div class="accordion-panel">
-          <p>internships, web projects, useful tools, and collaborations with people who care about the details.</p>
-        </div>
-
-        <button class="accordion-item" data-accordion>
-          <span class="accordion-q">favorite kind of work</span>
-          <span class="accordion-icon">+</span>
-        </button>
-        <div class="accordion-panel">
-          <p>interfaces that make information easier to find, tools that explain themselves, and projects where small design choices remove a lot of friction.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="popup" id="popup-contact" style="top:180px; left:38%;">
-    <div class="popup-header"><span>contact</span><button class="popup-close" data-close="contact"
-        aria-label="Close contact popup">[ x ]</button></div>
-    <div class="popup-body contact-box">
-      <h3>send a tiny letter</h3>
-      <p>email is the best way to reach me. I am happy to hear about internships, front-end work, useful tools, or collaborations that need thoughtful web implementation.</p>
-      <a class="mail-btn" href="mailto:tabishnavaid06@gmail.com">send me an email!</a>
-    </div>
-  </div>
-
-  <!-- Grass + cat -->
-  <svg class="grass-layer grass-far" viewBox="0 0 1440 200" preserveAspectRatio="none"
-    xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,90 Q360,40 720,80 T1440,70 V200 H0 Z" fill="var(--grass-far)" />
-  </svg>
-
-  <div class="meadow-deco dandelion" style="left:14%;">🌼</div>
-  <div class="meadow-deco dandelion" style="left:88%; bottom:7.5%;">🌼</div>
-
-  <div class="cat-track" id="catTrack">
-    <div class="cat-bubble" id="catBubble">tiny desk patrol says hello</div>
-    <div class="cat" id="catSprite" tabindex="0" role="button" aria-label="Play background music">
-      <img class="meadow-cat-img" id="meadowCatImg" src="assets/images/cat-morning-no-music.gif" alt="" aria-hidden="true">
-    </div>
-  </div>
-
-  <svg class="grass-layer grass-near" viewBox="0 0 1440 140" preserveAspectRatio="none"
-    xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,60 Q360,100 720,55 T1440,75 V140 H0 Z" fill="var(--grass-near)" />
-  </svg>
+  <!-- ==================== mode 3: field trip ==================== -->
+  <div id="fieldTripRoot" hidden></div>
 
   <script>
-    // Web Audio API Sound Manager
-    let audioCtx = null;
-    const clickSfx = new Audio('assets/sounds/click.mp3');
-    clickSfx.preload = 'auto';
-    const bgMusic = new Audio('assets/sounds/background-music.mp3');
-    bgMusic.preload = 'metadata';
-    bgMusic.loop = true;
-    bgMusic.volume = 0;
-
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-    }
-
-    function playSfx(type) {
-      if (!sfxOn) return;
-      try {
-        if (type === 'click') {
-          clickSfx.currentTime = 0;
-          clickSfx.play().catch(() => {});
-          return;
-        }
-
-        initAudio();
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        const now = audioCtx.currentTime;
-
-        if (type === 'open') {
-          // Warm ascending chime
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(260, now);
-          osc.frequency.exponentialRampToValueAtTime(520, now + 0.14);
-
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
-
-          osc.start(now);
-          osc.stop(now + 0.14);
-        } else if (type === 'close') {
-          // Softer descending chime
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(220, now + 0.12);
-
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-
-          osc.start(now);
-          osc.stop(now + 0.12);
-        } else if (type === 'theme') {
-          // Sparkly magic sweep harmony
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(550, now);
-          osc.frequency.exponentialRampToValueAtTime(1100, now + 0.2);
-
-          gain.gain.setValueAtTime(0.06, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-
-          osc.start(now);
-          osc.stop(now + 0.2);
-
-          const osc2 = audioCtx.createOscillator();
-          const gain2 = audioCtx.createGain();
-          osc2.connect(gain2);
-          gain2.connect(audioCtx.destination);
-
-          osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(825, now + 0.04);
-          osc2.frequency.exponentialRampToValueAtTime(1650, now + 0.2);
-
-          gain2.gain.setValueAtTime(0.04, now + 0.04);
-          gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-
-          osc2.start(now + 0.04);
-          osc2.stop(now + 0.2);
-        } else if (type === 'cat') {
-          // Playful kitty meow slide
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(600, now);
-          osc.frequency.exponentialRampToValueAtTime(750, now + 0.07);
-          osc.frequency.exponentialRampToValueAtTime(650, now + 0.18);
-
-          gain.gain.setValueAtTime(0.07, now);
-          gain.gain.exponentialRampToValueAtTime(0.03, now + 0.09);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
-          osc.start(now);
-          osc.stop(now + 0.18);
-        }
-      } catch (err) {
-        console.warn("SFX error: ", err);
-      }
-    }
-
-    // Theme progress: 0 = day, 0.5 = evening, 1 = night.
-    const root = document.documentElement;
-    const themeBtn = document.getElementById('themeToggle');
-    const themeToggleImg = document.getElementById('themeToggleImg');
-    const celestialControl = document.getElementById('celestialControl');
-    const profilePeekImg = document.getElementById('profilePeekImg');
-    const meadowCatImg = document.getElementById('meadowCatImg');
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let themeProgress = 0;
-    let themeAnimationFrame = null;
-    let bgMusicPlaying = false;
-
-    const themeColors = {
-      skyTopDay: '#cbeeff',
-      skyBotDay: '#f1faf4',
-      skyTopDusk: '#ffd8b5',
-      skyBotDusk: '#f7c7ab',
-      skyTopNight: '#111827',
-      skyBotNight: '#243b5a',
-      grassFarDay: '#b8cb8a',
-      grassFarDusk: '#a4b978',
-      grassFarNight: '#223850',
-      grassNearDay: '#9fbd76',
-      grassNearDusk: '#879f63',
-      grassNearNight: '#182a3f',
-      winBgDay: '#fdfaf2',
-      winBgNight: '#17233a',
-      winHeaderDay: '#2d2c29',
-      winHeaderNight: '#101827',
-      winTextDay: '#2d2c29',
-      winTextNight: '#f0f4fb',
-      winBorderDay: '#2d2c29',
-      winBorderNight: '#eaf6ff',
-      accentDay: '#d96e34',
-      accentNight: '#aef0ff'
+    /*
+      Keep broken addresses and broken boot files on the same designed page.
+      The useful detail still reaches the console; visitors never have to
+      decipher a filename or a half-mounted profile.
+    */
+    window.PortfolioFail = function (detail) {
+      if (window.console && console.error) console.error('[portfolio]', detail);
+      if (location.pathname !== '/404.html') location.replace('/404.html');
     };
 
-    const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-    const smoothstep = (edge0, edge1, value) => {
-      const t = clamp((value - edge0) / (edge1 - edge0));
-      return t * t * (3 - 2 * t);
-    };
-    const hexToRgb = hex => {
-      const clean = hex.replace('#', '');
-      return {
-        r: parseInt(clean.slice(0, 2), 16),
-        g: parseInt(clean.slice(2, 4), 16),
-        b: parseInt(clean.slice(4, 6), 16)
-      };
-    };
-    const mixHex = (from, to, amount) => {
-      const a = hexToRgb(from);
-      const b = hexToRgb(to);
-      const mix = key => Math.round(a[key] + (b[key] - a[key]) * amount);
-      return `rgb(${mix('r')}, ${mix('g')}, ${mix('b')})`;
-    };
-    const mixPhase = (day, dusk, night, progress) => {
-      if (progress <= 0.5) return mixHex(day, dusk, progress / 0.5);
-      return mixHex(dusk, night, (progress - 0.5) / 0.5);
-    };
-
-    function updateProfilePeekForTheme(progress) {
-      if (!profilePeekImg) return;
-      const nextSrc = progress >= 0.75
-        ? 'assets/images/peeking-sleeping-profile.png'
-        : 'assets/images/peeking-profile.png';
-      if (!profilePeekImg.src.endsWith(nextSrc)) {
-        profilePeekImg.src = nextSrc;
-      }
-    }
-
-    const catFallbackSrc = 'assets/images/cat-morning-no-music.gif';
-    const availableCatSrcs = new Map([[catFallbackSrc, true]]);
-
-    function catSrcForState() {
-      const time = themeProgress >= 0.65 ? 'night' : 'morning';
-      const music = bgMusicPlaying ? 'music' : 'no-music';
-      return `assets/images/cat-${time}-${music}.gif`;
-    }
-
-    function setCatImageSrc(src) {
-      if (!meadowCatImg || meadowCatImg.src.endsWith(src)) return;
-      meadowCatImg.src = src;
-    }
-
-    meadowCatImg?.addEventListener('error', () => {
-      availableCatSrcs.set(catSrcForState(), false);
-      setCatImageSrc(catFallbackSrc);
-    });
-
-    function updateCatState() {
-      if (!meadowCatImg) return;
-      const requestedSrc = catSrcForState();
-
-      if (availableCatSrcs.get(requestedSrc)) {
-        setCatImageSrc(requestedSrc);
-        return;
-      }
-
-      if (availableCatSrcs.get(requestedSrc) === false) {
-        setCatImageSrc(catFallbackSrc);
-        return;
-      }
-
-      const probe = new Image();
-      probe.onload = () => {
-        availableCatSrcs.set(requestedSrc, true);
-        if (catSrcForState() === requestedSrc) setCatImageSrc(requestedSrc);
-      };
-      probe.onerror = () => {
-        availableCatSrcs.set(requestedSrc, false);
-        if (catSrcForState() === requestedSrc) setCatImageSrc(catFallbackSrc);
-      };
-      probe.src = requestedSrc;
-    }
-
-    function setThemeProgress(progress, options = {}) {
-      const { persist = true, refreshClock = true } = options;
-      themeProgress = clamp(progress);
-
-      const duskOpacity = 1 - Math.abs(themeProgress - 0.5) * 2;
-      const nightOpacity = smoothstep(0.45, 1, themeProgress);
-      const uiNightMix = smoothstep(0.55, 1, themeProgress);
-      const sunFade = themeProgress < 0.55 ? 1 - themeProgress * 0.3 : 1 - ((themeProgress - 0.55) / 0.45);
-      const moonFade = smoothstep(0.34, 1, themeProgress);
-
-      root.style.setProperty('--theme-progress', themeProgress.toFixed(3));
-      root.style.setProperty('--dusk-opacity', clamp(duskOpacity).toFixed(3));
-      root.style.setProperty('--night-opacity', nightOpacity.toFixed(3));
-      root.style.setProperty('--star-opacity', (smoothstep(0.28, 1, themeProgress) * 0.95).toFixed(3));
-      root.style.setProperty('--cloud-opacity', (0.72 * (1 - smoothstep(0.28, 0.9, themeProgress))).toFixed(3));
-      root.style.setProperty('--firefly-opacity', smoothstep(0.52, 1, themeProgress).toFixed(3));
-      root.style.setProperty('--sun-opacity', clamp(sunFade).toFixed(3));
-      root.style.setProperty('--moon-opacity', moonFade.toFixed(3));
-      root.style.setProperty('--sun-scale', (1 - themeProgress * 0.16).toFixed(3));
-      root.style.setProperty('--moon-scale', (0.82 + moonFade * 0.18).toFixed(3));
-      root.style.setProperty('--sun-x', `${Math.round(themeProgress * -42)}px`);
-      root.style.setProperty('--sun-y', `${Math.round(themeProgress * 28)}px`);
-      root.style.setProperty('--moon-x', `${Math.round((1 - moonFade) * 34)}px`);
-      root.style.setProperty('--moon-y', `${Math.round((1 - moonFade) * 18)}px`);
-
-      root.style.setProperty('--sky-top', mixPhase(themeColors.skyTopDay, themeColors.skyTopDusk, themeColors.skyTopNight, themeProgress));
-      root.style.setProperty('--sky-bot', mixPhase(themeColors.skyBotDay, themeColors.skyBotDusk, themeColors.skyBotNight, themeProgress));
-      root.style.setProperty('--grass-far', mixPhase(themeColors.grassFarDay, themeColors.grassFarDusk, themeColors.grassFarNight, themeProgress));
-      root.style.setProperty('--grass-near', mixPhase(themeColors.grassNearDay, themeColors.grassNearDusk, themeColors.grassNearNight, themeProgress));
-      root.style.setProperty('--win-bg', mixHex(themeColors.winBgDay, themeColors.winBgNight, uiNightMix));
-      root.style.setProperty('--win-header', mixHex(themeColors.winHeaderDay, themeColors.winHeaderNight, uiNightMix));
-      root.style.setProperty('--win-text', mixHex(themeColors.winTextDay, themeColors.winTextNight, uiNightMix));
-      root.style.setProperty('--win-border', mixHex(themeColors.winBorderDay, themeColors.winBorderNight, uiNightMix));
-      root.style.setProperty('--accent', mixHex(themeColors.accentDay, themeColors.accentNight, uiNightMix));
-
-      root.classList.toggle('dark', themeProgress >= 0.98);
-      const themeIconSrc = themeProgress >= 0.75 ? 'assets/images/light-mode.png' : 'assets/images/dark-mode.png';
-      if (themeToggleImg && !themeToggleImg.src.endsWith(themeIconSrc)) {
-        themeToggleImg.src = themeIconSrc;
-      }
-      celestialControl.setAttribute('aria-valuenow', Math.round(themeProgress * 100));
-      celestialControl.setAttribute('aria-valuetext', themeProgress < 0.25 ? 'day' : themeProgress < 0.75 ? 'evening' : 'night');
-      updateProfilePeekForTheme(themeProgress);
-      updateCatState();
-
-      if (persist) localStorage.setItem('themeProgress', themeProgress.toFixed(3));
-      if (refreshClock) updateClock();
-    }
-
-    function animateThemeProgress(target, duration = 520) {
-      if (themeAnimationFrame) cancelAnimationFrame(themeAnimationFrame);
-      const start = themeProgress;
-      const end = clamp(target);
-      const startTime = performance.now();
-      const finalDuration = reduceMotion.matches ? 0 : duration;
-
-      const tick = now => {
-        const t = finalDuration === 0 ? 1 : clamp((now - startTime) / finalDuration);
-        const eased = 1 - Math.pow(1 - t, 3);
-        setThemeProgress(start + (end - start) * eased, { persist: t === 1, refreshClock: t === 1 });
-        if (t < 1) {
-          themeAnimationFrame = requestAnimationFrame(tick);
-        }
-      };
-
-      themeAnimationFrame = requestAnimationFrame(tick);
-    }
-
-    const savedThemeProgress = Number.parseFloat(localStorage.getItem('themeProgress')) || 0;
-    setThemeProgress(savedThemeProgress, { persist: false, refreshClock: false });
-    themeBtn.addEventListener('click', () => {
-      animateThemeProgress(themeProgress >= 0.75 ? 0 : 1);
-      playSfx('theme');
-    });
-
-    let dragStartX = 0;
-    let dragStartProgress = 0;
-
-    let draggingCelestial = false;
-    celestialControl.addEventListener('pointerdown', event => {
-      draggingCelestial = true;
-      dragStartX = event.clientX;
-      dragStartProgress = themeProgress;
-      celestialControl.classList.add('dragging');
-      celestialControl.setPointerCapture(event.pointerId);
-      setThemeProgress(themeProgress, { persist: false, refreshClock: false });
-    });
-    celestialControl.addEventListener('pointermove', event => {
-      if (!draggingCelestial) return;
-      const dragRange = Math.min(260, Math.max(150, window.innerWidth * 0.16));
-      setThemeProgress(dragStartProgress + (dragStartX - event.clientX) / dragRange, { persist: false, refreshClock: false });
-    });
-    celestialControl.addEventListener('pointerup', event => {
-      draggingCelestial = false;
-      celestialControl.classList.remove('dragging');
-      celestialControl.releasePointerCapture(event.pointerId);
-      setThemeProgress(themeProgress, { persist: true, refreshClock: true });
-    });
-    celestialControl.addEventListener('pointercancel', event => {
-      draggingCelestial = false;
-      celestialControl.classList.remove('dragging');
-      celestialControl.releasePointerCapture(event.pointerId);
-      setThemeProgress(themeProgress, { persist: true, refreshClock: true });
-    });
-    celestialControl.addEventListener('keydown', event => {
-      if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-        event.preventDefault();
-        setThemeProgress(themeProgress - 0.1);
-      } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        setThemeProgress(themeProgress + 0.1);
-      } else if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        animateThemeProgress(themeProgress >= 0.75 ? 0 : 1);
-        playSfx('theme');
+    /* A downloaded script can still fail while it is being parsed or run.
+       Resource onerror does not cover that case, so catch first-party script
+       failures here before they can leave a blank or half-working screen. */
+    window.addEventListener('error', function (event) {
+      if (!event.filename) return;
+      const source = new URL(event.filename, location.href);
+      if (source.origin === location.origin && source.pathname.includes('/js/')) {
+        window.PortfolioFail('a site script stopped unexpectedly');
       }
     });
 
-    // sfx toggle
-    const sfxBtn = document.getElementById('sfxToggle');
-    const sfxToggleImg = document.getElementById('sfxToggleImg');
-    let sfxOn = localStorage.getItem('sfxOn') === 'true'; // false/off by default
+    (function guardPublicAddress() {
+      const modes = ['brief', 'meadow', 'field-trip'];
+      const params = new URLSearchParams(location.search);
+      const asked = params.get('mode');
+      const validPath = location.pathname === '/' || location.pathname === '/index.html';
+      const validMode = !params.has('mode') || modes.includes(asked);
 
-    function updateSfxToggleIcon() {
-      if (!sfxToggleImg) return;
-      sfxToggleImg.src = sfxOn ? 'assets/images/sound-on.png' : 'assets/images/sound-off.png';
-    }
-
-    updateSfxToggleIcon();
-
-    sfxBtn.addEventListener('click', () => {
-      sfxOn = !sfxOn;
-      localStorage.setItem('sfxOn', sfxOn);
-      updateSfxToggleIcon();
-      if (sfxOn) {
-        initAudio();
-        playSfx('click');
-      } else if (typeof stopBackgroundMusic === 'function') {
-        stopBackgroundMusic('meadow muted');
-      }
-    });
-
-    // generate stars
-    const starsContainer = document.getElementById('stars');
-    for (let i = 0; i < 60; i++) {
-      const s = document.createElement('div');
-      s.className = 'star';
-      const size = Math.random() * 2.5 + 1;
-      s.style.width = size + 'px';
-      s.style.height = size + 'px';
-      s.style.left = Math.random() * 100 + '%';
-      s.style.top = Math.random() * 55 + '%';
-      s.style.animationDelay = (Math.random() * 3) + 's';
-      starsContainer.appendChild(s);
-    }
-
-    // popup open/close + drag
-    document.querySelectorAll('[data-popup]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        playSfx('click');
-        const popup = document.getElementById('popup-' + btn.dataset.popup);
-        popup.classList.add('open');
-        popup.style.zIndex = ++topZ;
-      });
-    });
-    document.querySelectorAll('[data-close]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        playSfx('close');
-        document.getElementById('popup-' + btn.dataset.close).classList.remove('open');
-      });
-    });
-
-    let topZ = 100;
-    document.querySelectorAll('.popup').forEach(popup => {
-      const header = popup.querySelector('.popup-header');
-      let dragging = false, offX = 0, offY = 0;
-
-      const startDrag = (clientX, clientY) => {
-        dragging = true;
-        const rect = popup.getBoundingClientRect();
-        offX = clientX - rect.left;
-        offY = clientY - rect.top;
-        popup.style.zIndex = ++topZ;
-      };
-      const moveDrag = (clientX, clientY) => {
-        if (!dragging) return;
-        let x = clientX - offX;
-        let y = clientY - offY;
-        x = Math.max(4, Math.min(window.innerWidth - 60, x));
-        y = Math.max(4, Math.min(window.innerHeight - 60, y));
-        popup.style.left = x + 'px';
-        popup.style.top = y + 'px';
-      };
-      const endDrag = () => { dragging = false; };
-
-      header.addEventListener('mousedown', e => { if (e.target.closest('.popup-close')) return; startDrag(e.clientX, e.clientY); });
-      window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
-      window.addEventListener('mouseup', endDrag);
-
-      header.addEventListener('touchstart', e => {
-        if (e.target.closest('.popup-close')) return;
-        const t = e.touches[0]; startDrag(t.clientX, t.clientY);
-      }, { passive: true });
-      window.addEventListener('touchmove', e => { const t = e.touches[0]; moveDrag(t.clientX, t.clientY); }, { passive: true });
-      window.addEventListener('touchend', endDrag);
-    });
-
-    // clock widget
-    const SUN_ICON = `
-    <circle cx="11" cy="14" r="7" fill="#ffd166" stroke="#e8a154" stroke-width="1.5"/>
-    <g stroke="#ffd166" stroke-width="2" stroke-linecap="round">
-      <line x1="11" y1="2" x2="11" y2="5"/>
-      <line x1="11" y1="23" x2="11" y2="26" opacity="0"/>
-      <line x1="1" y1="14" x2="4" y2="14"/>
-      <line x1="3" y1="6" x2="5" y2="8"/>
-      <line x1="3" y1="22" x2="5" y2="20"/>
-      <line x1="19" y1="6" x2="17" y2="8"/>
-    </g>
-    <ellipse cx="29" cy="22" rx="10" ry="5" fill="#a8e6a0"/>
-    <ellipse cx="36" cy="24" rx="6" ry="3.5" fill="#8fd17a"/>
-    <ellipse cx="22" cy="24" rx="5" ry="3" fill="#8fd17a"/>
-  `;
-    const CLOUD_ICON = `
-    <ellipse cx="14" cy="14" rx="9" ry="6" fill="#fff"/>
-    <ellipse cx="22" cy="11" rx="10" ry="7" fill="#fff"/>
-    <ellipse cx="30" cy="15" rx="8" ry="5.5" fill="#fff"/>
-    <ellipse cx="29" cy="23" rx="10" ry="5" fill="#a8e6a0"/>
-    <ellipse cx="10" cy="24" rx="7" ry="3.5" fill="#8fd17a"/>
-  `;
-    const MOON_ICON = `
-    <circle cx="14" cy="12" r="7" fill="#e3e9f7"/>
-    <circle cx="11" cy="10" r="2" fill="#c7d2ea"/>
-    <circle cx="17" cy="14" r="1.3" fill="#c7d2ea"/>
-    <circle cx="33" cy="6" r="1" fill="#fff6b0"/>
-    <circle cx="27" cy="3" r="0.7" fill="#fff6b0"/>
-    <ellipse cx="29" cy="22" rx="10" ry="5" fill="#1f3d2b"/>
-    <ellipse cx="20" cy="24" rx="7" ry="3.5" fill="#16291c"/>
-    <circle cx="6" cy="22" r="1" fill="#fff6b0"/>
-    <circle cx="15" cy="25" r="1" fill="#fff6b0"/>
-  `;
-
-    function updateClock() {
-      const timeEl = document.getElementById('clockTime');
-      const dateEl = document.getElementById('clockDate');
-      const icon = document.getElementById('weatherIcon');
-      const label = document.getElementById('clockWeatherLabel');
-      if (!timeEl || !dateEl || !icon || !label) return;
-
-      const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes().toString().padStart(2, '0');
-      const h12 = ((h % 12) || 12).toString().padStart(2, '0');
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      timeEl.textContent = `${h12}:${m} ${ampm}`;
-      dateEl.textContent = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-
-      if (themeProgress >= 0.75) {
-        icon.innerHTML = MOON_ICON;
-        label.textContent = 'starry meadow';
-      } else if (themeProgress >= 0.3) {
-        icon.innerHTML = SUN_ICON;
-        label.textContent = 'golden meadow';
-      } else {
-        icon.innerHTML = h >= 7 && h < 18 ? SUN_ICON : CLOUD_ICON;
-        label.textContent = h >= 7 && h < 18 ? 'sunny meadow' : 'cloudy meadow';
-      }
-    }
-    updateClock();
-    setInterval(updateClock, 15000);
-
-    // FAQ accordion
-    document.querySelectorAll('[data-accordion]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const panel = btn.nextElementSibling;
-        const isOpen = btn.classList.contains('open');
-        btn.classList.toggle('open', !isOpen);
-        panel.classList.toggle('open', !isOpen);
-      });
-    });
-
-    // Peeking profile doodle: hide behind the desktop, then pop back up.
-    const profilePeek = document.getElementById('profilePeek');
-    const profilePeekMessage = document.querySelector('.profile-peek-message');
-    const desktopWindow = document.querySelector('.desktop-window');
-    let profilePeekTimeout;
-
-    function playProfilePeek() {
-      if (!profilePeek || profilePeek.classList.contains('is-hiding') || desktopWindow?.classList.contains('profile-peek-talking')) return;
-      playSfx('click');
-      clearTimeout(profilePeekTimeout);
-
-      if (themeProgress >= 0.75) {
-        if (profilePeekMessage) profilePeekMessage.textContent = 'just five more minutes 人´∀｀)';
-        desktopWindow?.classList.add('profile-peek-talking');
-        profilePeekTimeout = setTimeout(() => {
-          desktopWindow?.classList.remove('profile-peek-talking');
-        }, 2400);
-        return;
-      }
-
-      if (profilePeekMessage) profilePeekMessage.textContent = 'brb';
-      profilePeek.classList.add('is-hiding');
-      desktopWindow?.classList.add('profile-peek-hiding');
-
-      profilePeekTimeout = setTimeout(() => {
-        profilePeek.classList.remove('is-hiding');
-        desktopWindow?.classList.remove('profile-peek-hiding');
-      }, 5000);
-    }
-
-    profilePeek?.addEventListener('click', playProfilePeek);
-    profilePeek?.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        playProfilePeek();
-      }
-    });
-
-    // Cat music toggle. This never autoplays; the cat starts or pauses music after user input.
-    const catSprite = document.getElementById('catSprite');
-    const catBubble = document.getElementById('catBubble');
-    let catBubbleTimeout;
-    let bgMusicFadeTimer;
-    const bgMusicVolume = 0.22;
-
-    function showCatBubble(msg) {
-      catBubble.textContent = msg;
-      catBubble.style.left = (catSprite.offsetLeft + 70) + 'px';
-      catBubble.classList.add('show');
-
-      clearTimeout(catBubbleTimeout);
-      catBubbleTimeout = setTimeout(() => {
-        catBubble.classList.remove('show');
-      }, 2000);
-    }
-
-    function updateCatMusicState(isPlaying) {
-      bgMusicPlaying = isPlaying;
-      catSprite.classList.toggle('music-playing', isPlaying);
-      catSprite.setAttribute('aria-label', isPlaying ? 'Pause background music' : 'Play background music');
-      updateCatState();
-    }
-
-    function fadeMusicTo(targetVolume, onDone) {
-      clearInterval(bgMusicFadeTimer);
-      const startVolume = bgMusic.volume;
-      const steps = 12;
-      let step = 0;
-
-      bgMusicFadeTimer = setInterval(() => {
-        step++;
-        bgMusic.volume = startVolume + ((targetVolume - startVolume) * (step / steps));
-        if (step >= steps) {
-          clearInterval(bgMusicFadeTimer);
-          bgMusic.volume = targetVolume;
-          if (onDone) onDone();
-        }
-      }, 35);
-    }
-
-    async function startBackgroundMusic() {
-      if (!sfxOn) {
-        showCatBubble('sound switch first?');
-        return;
-      }
-
-      playSfx('click');
-      try {
-        bgMusic.currentTime = bgMusic.currentTime || 0;
-        await bgMusic.play();
-        updateCatMusicState(true);
-        fadeMusicTo(bgMusicVolume);
-        showCatBubble('tiny soundtrack activated');
-      } catch (err) {
-        updateCatMusicState(false);
-        showCatBubble('music file not here yet');
-      }
-    }
-
-    function stopBackgroundMusic(message = 'meadow muted') {
-      if (!bgMusicPlaying && bgMusic.paused) {
-        updateCatMusicState(false);
-        return;
-      }
-
-      fadeMusicTo(0, () => {
-        bgMusic.pause();
-      });
-      updateCatMusicState(false);
-      showCatBubble(message);
-    }
-
-    function toggleBackgroundMusic() {
-      if (bgMusicPlaying) {
-        if (sfxOn) playSfx('click');
-        stopBackgroundMusic();
-      } else {
-        startBackgroundMusic();
-      }
-    }
-
-    updateCatMusicState(false);
-
-    catSprite.addEventListener('click', toggleBackgroundMusic);
-    catSprite.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggleBackgroundMusic();
-      }
-    });
+      /* This also covers hosts configured to rewrite an unknown route to
+         index.html instead of serving 404.html themselves. */
+      if (!validPath || !validMode) window.PortfolioFail('unknown public address');
+    })();
   </script>
-
+  <script src="js/content.js?v=20260821-profilefix2" defer
+    onerror="window.PortfolioFail('the shared content file did not load')"></script>
+  <script src="js/modes.js?v=20260821-profilefix2" defer
+    onerror="window.PortfolioFail('the profile loader did not load')"></script>
 </body>
 
 </html>
