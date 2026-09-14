@@ -93,7 +93,6 @@ window.FIELD_TRIP_PANELS = (function () {
     switch (s.kind) {
       case 'profile':
         return `<p class="ft-lede">${esc(C.profile.name)}. ${esc(C.profile.taglinePlain)}.</p>
-          <p class="ft-status">${esc(C.profile.status)}</p>
           <p>${esc(C.profile.school)} · ${esc(C.profile.classYear)} · ${esc(C.profile.location)}</p>`;
       case 'text':
         return (s.title ? `<h3>${esc(s.title)}</h3>` : '') + `<p>${esc(s.body)}</p>`;
@@ -135,8 +134,7 @@ window.FIELD_TRIP_PANELS = (function () {
           { label: 'LinkedIn', href: C.links.linkedin }
         ];
         if (C.links.resume) items.push({ label: 'résumé', href: C.links.resume });
-        return `<p class="ft-links">${items.map(link).join('')}</p>
-          <p class="ft-status">${esc(C.contact.status)}</p>`;
+        return `<p class="ft-links">${items.map(link).join('')}</p>`;
       }
       case 'links':
         return `<p class="ft-links">${s.items.map(link).join('')}</p>`;
@@ -153,7 +151,7 @@ window.FIELD_TRIP_PANELS = (function () {
           )
           .join('');
       case 'return':
-        return `<p>the bus at the bottom of the village goes back to the meadow desktop. progress here is saved.</p>
+        return `<p>The bus at the bottom of the village takes you back to the meadow desktop. Your progress here is saved, so you can pick up where you left off.</p>
           <p class="ft-links"><a class="ft-link" href="?mode=meadow">return to the desktop</a>
           <a class="ft-link" href="?mode=brief">open the one-page brief</a></p>`;
       default:
@@ -200,7 +198,7 @@ window.FIELD_TRIP_PANELS = (function () {
             (e) => `<li>
               <button class="ft-map__go" type="button" data-inspect="${esc(roomId)}:${esc(e.id)}">
                 <b>${esc(e.obj.name)}</b><small>${esc(
-              e.obj.panel ? e.obj.panel.title : e.obj.action === 'arcade' ? 'a game, not a résumé' : 'a look around'
+              e.obj.panel ? e.obj.panel.title : e.obj.action === 'arcade' ? 'play it' : 'a look around'
             )}</small>
               </button>
               ${state && state.inspected[roomId + ':' + e.id] ? '<span class="ft-map__seen">seen</span>' : ''}
@@ -209,15 +207,15 @@ window.FIELD_TRIP_PANELS = (function () {
           .join('')}
       </ul>
       <p class="ft-blurb">${window.FIELD_TRIP_INTERIORS && window.FIELD_TRIP_INTERIORS[roomId]
-        ? 'everything above opens without walking. to walk to it instead, close this and head for the door.'
-        : 'everything above opens without walking. to walk to it instead, close this and go and stand next to it.'}</p>`;
+        ? 'You can open all of this from here. If you’d rather walk there, close this and head for the door.'
+        : 'You can open all of this from here. If you’d rather walk to it, close this and go stand next to it.'}</p>`;
   }
 
   /* --- toolbar panels ----------------------------------------------------- */
 
   function mapHtml(state) {
     return `<h3>map directory</h3>
-      <p class="ft-blurb">${esc(C.town.intro)} every room opens here as text, with the same objects you would find inside.</p>
+      <p class="ft-blurb">${esc(C.town.intro)} Every room is listed here as text too, with the same things you’d find inside.</p>
       <ul class="ft-map">
         ${C.town.locations
           .map(
@@ -230,7 +228,7 @@ window.FIELD_TRIP_PANELS = (function () {
           )
           .join('')}
       </ul>
-      <p class="ft-credit">pixel art from packs by shubibubi and the Character v.2 pack, cut down for this village.</p>`;
+      <p class="ft-credit">Pixel art from packs by shubibubi and the Character v.2 pack, cut down for this village.</p>`;
   }
 
   function questsHtml(state) {
@@ -238,7 +236,7 @@ window.FIELD_TRIP_PANELS = (function () {
     const done = quests.filter((q) => state.quests[q.id]).length;
     const all = done === quests.length;
     return `<h3>quest log</h3>
-      <p class="ft-blurb">${done} of ${quests.length}. none of it gates anything. the contact details are in the post office either way.</p>
+      <p class="ft-blurb">${done} of ${quests.length} found. None of these are required, and my contact details are in the post office whenever you want them.</p>
       <ul class="ft-quests">
         ${quests
           .map(
@@ -262,6 +260,7 @@ window.FIELD_TRIP_PANELS = (function () {
         <button class="ft-menu__b" type="button" data-menu="hint">show the controls again</button>
         <button class="ft-menu__b" type="button" data-menu="sound">sound: ${state.sound ? 'on' : 'off'}</button>
         <button class="ft-menu__b" type="button" data-menu="night">${state.night ? 'daytime' : 'night'}</button>
+        <button class="ft-menu__b" type="button" data-menu="ride">ride the bus back</button>
         <a class="ft-menu__b" href="?mode=meadow">return to desktop</a>
         <button class="ft-menu__b" type="button" data-menu="switch">switch profile</button>
         <button class="ft-menu__b ft-menu__b--quiet" type="button" data-menu="reset">reset the game</button>

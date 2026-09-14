@@ -1,27 +1,26 @@
 /* ==========================================================================
    world.js — the layout of Tabish Town.
 
-   The town sits in a shallow valley. A ring of lanes goes round the green in
-   the middle; Market Row runs along the top of it, the makers' yard hangs off
-   the west side, and a footpath follows the millpond round the east. The bus
-   arrives at the bottom and a stream leaves at the bottom, under a bridge.
+   The town is a street plan, not a scatter of buildings, and it is packed
+   tight on purpose. Fourteen buildings spread across a big map read as
+   fourteen sprites standing in a field; the same fourteen with two tiles
+   between them read as a town. Everything below follows from that.
 
-   Three things follow from that shape, and all three are the point:
-
-     - You can walk a full circle without retracing your steps. The ring, the
-       lane behind the school and the pond path each close, so wandering is
-       never a dead end and the map has no cul-de-sac of consequence.
-     - Not every building is a door. The school, the cinema, two cottages and
-       a parked caravan are scenery, so an open door means something.
-     - Surfaces say what a place is for. Cobble is a street, dirt is a path or
-       a yard somebody wore into the grass, and the paving is the green.
-
-   Lanes are generated, not typed out: `lane()` walks between waypoints and
-   stamps a band across the direction of travel, which is why a bend stays
-   three tiles wide instead of ballooning. `blob()` does the same job for
-   round places. Water knows its own edges: `shoreTile()` picks a shore sprite
-   from each wet tile's neighbours, so world.js hands game.js ordinary ground
-   steps and the engine never has to learn what a pond is.
+     - Streets run on the axes with a paved kerb either side, and they stop
+       where the buildings stop. There is no road around the outside: a ring
+       with nothing on its far side is a racetrack, not a town.
+     - Three streets, three rows of buildings. Every sprite in the pack faces
+       down, so each row sits directly above the street it fronts and the
+       fronts line up the way a real street does.
+     - Two connectors run through the built-up part rather than around it, so
+       a loop goes past shopfronts instead of round the back of a hedge.
+     - Nothing stands alone. Props come in groups that explain each other: a
+       bench with a lamp and a tree, a yard with crates and a fence, a hedge
+       marking where one garden stops and the next begins.
+     - Trees grow in copses, never in an even sprinkle, and cherry is one in
+       five so the wood stays a wood.
+     - Detail thins outward: shopfronts, then back gardens, then orchard,
+       then scrub, then closed forest.
 
    Tiles are 16px. Every coordinate below is in tile units.
    ========================================================================== */
@@ -29,60 +28,148 @@
 window.FIELD_TRIP_WORLD = (function () {
   'use strict';
 
-  const COLS = 88;
-  const ROWS = 66;
+  const COLS = 72;
+  const ROWS = 56;
 
-  /* --- ground-painting helpers ------------------------------------------ */
+  const GROUND = [{ fill: 'grass' }];
+  const PROPS = [];
+  const TREES = [];
 
-  /* A lane between waypoints. The band is stamped across the direction of
-     travel, so a diagonal run stays a road rather than spreading into a
-     field, and interpolating between waypoints is what lets one bend. */
-  function lane(tile, half, points) {
-    const out = [];
-    const span = half * 2 + 1;
-    for (let i = 0; i < points.length - 1; i += 1) {
-      const [x0, y0] = points[i];
-      const [x1, y1] = points[i + 1];
-      const dx = x1 - x0;
-      const dy = y1 - y0;
-      const steps = Math.max(Math.abs(dx), Math.abs(dy)) || 1;
-      const flat = Math.abs(dx) >= Math.abs(dy);
-      for (let s = 0; s <= steps; s += 1) {
-        const x = Math.round(x0 + (dx * s) / steps);
-        const y = Math.round(y0 + (dy * s) / steps);
-        out.push(flat ? { rect: [x, y - half, 1, span], tile: tile }
-                      : { rect: [x - half, y, span, 1], tile: tile });
-      }
+  const paint = (tile, x, y, w, h) => GROUND.push({ rect: [x, y, w, h], tile: tile });
+  const prop = (sprite, x, y, extra) => PROPS.push(Object.assign({ sprite: sprite, at: [x, y] }, extra || {}));
+
+  /* one seeded stream of numbers, so the town is identical on every load */
+  let seed = 20260903;
+  function rnd() {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  }
+  const pick = (list) => list[Math.floor(rnd() * list.length)];
+
+  /* --- streets ------------------------------------------------------------ */
+  /* A carriageway with a paved kerb on both sides. Keeping them axis-aligned
+     is what makes the town read as a town: the eye follows a straight edge
+     and stops looking for a pattern in a diagonal. */
+
+  function street(x0, y0, x1, y1, half) {
+    const h = half === undefined ? 1 : half;
+    if (y0 === y1) {
+      paint('paving', x0, y0 - h - 1, x1 - x0 + 1, 1);
+      paint('paving', x0, y0 + h + 1, x1 - x0 + 1, 1);
+      paint('cobble', x0, y0 - h, x1 - x0 + 1, h * 2 + 1);
+    } else {
+      paint('paving', x0 - h - 1, y0, 1, y1 - y0 + 1);
+      paint('paving', x0 + h + 1, y0, 1, y1 - y0 + 1);
+      paint('cobble', x0 - h, y0, h * 2 + 1, y1 - y0 + 1);
     }
-    return out;
   }
 
-  /* A rounded place: one rect per row of an ellipse. */
-  function blob(tile, cx, cy, rx, ry) {
-    const out = [];
-    for (let y = cy - ry; y <= cy + ry; y += 1) {
-      const t = (y - cy) / ry;
-      const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - t * t)));
-      if (w > 0) out.push({ rect: [cx - w, y, w * 2 + 1, 1], tile: tile });
+  /* Hierarchy, and it matters more than it sounds: Main Street is three lanes
+     wide because it is the boulevard, the two side lanes are one, and the
+     alleys are dirt. Making every street the same width is what turns a town
+     into a car park, and five tiles of featureless grey is a third of the
+     screen at this zoom. */
+  street(6, 28, 62, 28);           // Main Street, three lanes and two kerbs
+  street(12, 14, 58, 14, 0);       // North Lane
+  street(12, 40, 62, 40, 0);       // South Lane
+  street(10, 13, 10, 41, 0);       // West Lane, down the side of the shops
+  street(34, 15, 34, 39, 0);       // the Cut, straight through both blocks
+  street(24, 41, 24, 46, 0);       // the station lane, down to the bus
+
+  /* the service alley behind Market Row, on nobody's grid */
+  paint('dirt', 13, 17, 19, 1);
+  paint('dirt', 31, 17, 1, 9);
+
+  /* the riverside path, and the lane along the millpond's south shore */
+  paint('dirt', 61, 26, 3, 27);
+  paint('dirt', 44, 50, 20, 3);
+
+  /* Main Street carries on under the canopy at both ends */
+  paint('cobble', 2, 27, 5, 3);
+
+  /* --- plots -------------------------------------------------------------- */
+
+  function fenceRun(x0, x1, y, gateX) {
+    for (let x = x0; x + 3 <= x1 + 1; x += 3) {
+      if (gateX !== undefined && x + 2 >= gateX - 1 && x <= gateX + 1) continue;
+      prop('picket', x, y, { solid: [x, y, 3, 1] });
     }
-    return out;
   }
 
-  /* --- water ------------------------------------------------------------- */
-  /* The millpond, and the stream that leaves it southward under the bridge. */
+  /* A boundary between two gardens. A hedge, because two picket fences back
+     to back looks like a mistake and a hedge does not. */
+  function hedge(x, y0, y1) {
+    for (let y = y0; y <= y1; y += 1) prop(rnd() > 0.5 ? 'bush-green' : 'bush-dark', x, y, { solid: [x, y, 1, 1] });
+  }
+
+  /* --- planting ----------------------------------------------------------- */
+  /* Cherry is an accent. One in five is the difference between a wood and a
+     sheet of blossom wallpaper. */
+
+  const KINDS = ['tree-pine', 'tree-apple', 'tree-pine', 'tree-apple', 'tree-cherry'];
+  const WOOD = ['tree-pine', 'tree-apple', 'tree-pine'];
+  const wet = (x, y) => WATER.has(wkey(Math.floor(x) + 1, Math.floor(y) + 1));
+  const tree = (kind, x, y) => { if (!wet(x, y)) TREES.push([kind, x, y]); };
+
+  /* Trees grow in company: one big one, then a few smaller ones nudged round
+     it, usually of the same kind. That is what reads as a copse. */
+  function copse(cx, cy, count, spread) {
+    const main = pick(KINDS);
+    tree(main, cx, cy);
+    for (let i = 1; i < count; i += 1) {
+      const a = (i / count) * Math.PI * 2 + rnd();
+      const r = 0.7 + rnd() * spread;
+      tree(rnd() > 0.25 ? main : pick(KINDS), cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.7);
+    }
+  }
+
+  /* Rough ground. A clump of bushes and stones with no fence and no order,
+     which is what the land does where nobody is looking after it. None of it
+     is solid, so the outer zone can never trap anybody. */
+  function scrub(cx, cy, n) {
+    for (let i = 0; i < n; i += 1) {
+      const r = rnd();
+      prop(r > 0.74 ? 'stone' : r > 0.37 ? 'bush-green' : 'bush-dark',
+        Math.round(cx + (rnd() - 0.5) * 3.6), Math.round(cy + (rnd() - 0.5) * 2.8));
+    }
+  }
+
+  /* An old field boundary, left over from before the town. Hedges have gaps
+     in them, which is most of what makes a line of bushes read as a hedge. */
+  function hedgerow(x0, x1, y) {
+    for (let x = x0; x <= x1; x += 1) {
+      if (rnd() > 0.84) continue;
+      prop(rnd() > 0.5 ? 'bush-green' : 'bush-dark', x, y + (rnd() > 0.72 ? 1 : 0));
+    }
+  }
+
+  /* An orchard is the opposite: somebody planted it, so it is in rows, and
+     the contrast is what tells you where the town stops. */
+  function orchard(x0, y0, cols, rows2) {
+    for (let r = 0; r < rows2; r += 1) {
+      for (let c = 0; c < cols; c += 1) tree('tree-apple', x0 + c * 3 + (r % 2) * 0.4, y0 + r * 3);
+    }
+  }
+
+  /* --- water -------------------------------------------------------------- */
 
   const WATER = new Set();
   const wkey = (x, y) => y * COLS + x;
 
-  (function fillPond(cx, cy, rx, ry) {
+  (function pond(cx, cy, rx, ry) {
     for (let y = cy - ry; y <= cy + ry; y += 1) {
       const t = (y - cy) / ry;
       const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - t * t)));
       for (let x = cx - w; x <= cx + w; x += 1) WATER.add(wkey(x, y));
     }
-  })(67, 45, 8, 5);
+  })(52, 46, 5, 3);
+  /* the brook out of the pond, running east to join the river */
+  for (let y = 45; y <= 47; y += 1) for (let x = 56; x <= 64; x += 1) WATER.add(wkey(x, y));
 
-  for (let y = 49; y < 64; y += 1) for (let x = 65; x <= 67; x += 1) WATER.add(wkey(x, y));
+  /* The river. The whole east side of the map is water rather than another
+     wall of trees: you can walk down to the bank, see the far side, and not
+     cross. A boundary you can look across stops reading as a wall. */
+  for (let y = 0; y < ROWS; y += 1) for (let x = 64; x <= 69; x += 1) WATER.add(wkey(x, y));
 
   /* Thirteen shore sprites cover every case the pack draws: four edges, four
      outside corners, and four insides where a bank cuts in diagonally. */
@@ -107,79 +194,318 @@ window.FIELD_TRIP_WORLD = (function () {
     return 'water';
   }
 
-  /* Under the bridge it is still water; it is the collision that lifts, not
-     the tile. Kept in one place so the deck and the gap cannot drift apart. */
-  const BRIDGE = { x0: 65, x1: 67, y0: 55, y1: 57 };
-  const onBridge = (x, y) => x >= BRIDGE.x0 && x <= BRIDGE.x1 && y >= BRIDGE.y0 && y <= BRIDGE.y1;
+  /* The two places you can stand on water: the bridge that carries the
+     riverside path over the brook, and the jetty at the end of the walk. */
+  const DECKS = [
+    { x0: 61, x1: 63, y0: 45, y1: 47 },
+    { x0: 64, x1: 66, y0: 49, y1: 50 }
+  ];
+  const onDeck = (x, y) => DECKS.some((c) => x >= c.x0 && x <= c.x1 && y >= c.y0 && y <= c.y1);
 
-  /* --- ground ------------------------------------------------------------ */
-  /* Later steps paint over earlier ones: grass, worn ground, streets, paths,
-     the green, then water. */
+  /* --- buildings ---------------------------------------------------------- */
+  /* No `id` means scenery: no door, no plaque, nothing to open. Five of the
+     thirteen are scenery, so an open door means something. */
 
-  const GROUND = [{ fill: 'grass' }];
+  const BUILDINGS = [
+    /* Block A, fronting North Lane */
+    { id: 'civic', sprite: 'b-community', at: [12, 5], door: [16, 13], plaque: 'the community center' },
+    { id: 'library', sprite: 'b-library', at: [24, 6], door: [28, 13], plaque: 'the library' },
+    { sprite: 'b-school', at: [42, 6] },
 
-  /* ground people have worn bare by standing on it */
-  GROUND.push(...blob('dirt', 32, 57, 8, 4));            // the arrival apron
-  GROUND.push(...blob('dirt', 14, 38, 7, 4));            // the makers' yard
-  GROUND.push(...blob('dirt', 58, 12, 5, 3));            // the school field
+    /* Market Row, fronting Main Street */
+    { id: 'market', sprite: 'b-market', at: [12, 18], door: [17, 26], plaque: 'the market' },
+    { id: 'post', sprite: 'b-post', at: [25, 20], door: [27, 26], plaque: 'the post office' },
+    { id: 'lostfound', sprite: 'b-house', at: [36, 21], door: [38, 26], plaque: 'the lost & found' },
+    { id: 'pub', sprite: 'b-pub', at: [44, 21], door: [46, 26], plaque: 'the pub' },
+    { sprite: 'b-cinema', at: [52, 20] },
 
-  /* Market Row, bent twice so no shopfront lines up with the next one, and
-     carrying on under the canopy at both ends rather than stopping dead */
-  GROUND.push(...lane('cobble', 1, [[2, 20], [8, 19], [14, 18], [21, 17], [28, 20], [36, 20], [44, 17], [55, 18], [62, 22]]));
-  GROUND.push(...lane('cobble', 1, [[62, 22], [68, 19], [75, 17], [86, 16]]));
+    /* the south side, fronting South Lane */
+    { id: 'arcade', sprite: 'b-arcade', at: [36, 33], door: [38, 39], plaque: 'the arcade' },
+    { id: 'workshop', sprite: 'b-blacksmith', at: [44, 33], door: [46, 39], plaque: 'the workshop' },
+    { id: 'drafting', sprite: 'b-trailer', at: [52, 35], door: [54, 39], plaque: 'the drafting room' },
 
-  /* the ring round the green */
-  GROUND.push(...lane('cobble', 1, [[21, 17], [20, 24], [23, 30], [27, 33], [32, 33]]));
-  GROUND.push(...lane('cobble', 1, [[55, 18], [57, 24], [56, 30], [52, 33], [49, 33]]));
-  GROUND.push(...lane('cobble', 1, [[14, 41], [22, 42], [30, 41], [37, 43], [45, 42], [52, 44], [56, 45]]));
-  GROUND.push(...lane('cobble', 1, [[41, 37], [40, 41]]));
-  GROUND.push(...lane('cobble', 1, [[23, 30], [20, 34], [15, 37]]));
-  GROUND.push(...lane('cobble', 1, [[38, 43], [36, 48], [34, 53], [33, 56]]));
+    /* out past the bus stop */
+    { sprite: 'b-house', at: [12, 44] },
+    { sprite: 'b-trailer', at: [36, 45] }
+  ];
 
-  /* the lane behind the school, which is how the north-east reaches the pond */
-  GROUND.push(...lane('cobble', 1, [[55, 18], [59, 22], [66, 23], [74, 24], [78, 30], [77, 37], [74, 40]]));
+  /* ======================================================================== */
+  /* BLOCK A — the civic row                                                  */
+  /* ======================================================================== */
 
-  /* footpaths: sandy, so a path never reads as another street */
-  GROUND.push(...lane('dirt', 1, [
-    [56, 45], [59, 41], [63, 38], [69, 37], [74, 40], [77, 45], [76, 51], [72, 56],
-    [60, 56], [52, 57], [45, 56], [38, 56]
-  ]));
-  GROUND.push(...lane('dirt', 1, [[50, 34], [54, 38], [57, 42]]));   // the green to the water
-  GROUND.push(...lane('dirt', 1, [[22, 42], [20, 47], [23, 52], [27, 56]]));  // the cottage lane
+  paint('paving', 12, 12, 10, 1);                // the community centre's apron
+  paint('paving', 24, 12, 10, 1);                // the library's
+  paint('dirt', 34, 5, 8, 8);                    // the school field
+  hedge(22, 5, 12);                              // civic | library
+  prop('bench-left', 19.0, 12.4, { solid: [19, 12, 2, 1] });
+  prop('bench-right', 31.0, 12.4, { solid: [31, 12, 2, 1] });
+  prop('lamp', 23.0, 12.2);
+  prop('crate', 32.0, 11.4, { solid: [32, 12, 2, 1] });
+  prop('bush-green', 12.0, 4.0);
+  prop('bush-dark', 13.0, 4.0);
+  prop('flower-yellow', 11.0, 12.0);
 
-  /* the green: a rounded place with a squarer north end, because two doors
-     open onto it from up there and a door needs somewhere to open onto */
-  GROUND.push(...blob('paving', 41, 32, 8, 5));
-  GROUND.push({ rect: [35, 26, 13, 3], tile: 'paving' });
-  GROUND.push(...blob('grass', 41, 32, 4, 2));
+  /* the playground on the school field, behind a picket fence */
+  fenceRun(34, 41, 13, 37);
+  prop('picket-gate', 37.0, 13.0);
+  paint('paving', 37, 13, 1, 1);
+  prop('swing', 34.4, 6.6, { solid: [34, 9, 3, 1] });
+  prop('slide', 38.2, 5.4, { solid: [38, 9, 2, 1] });
+  prop('spring-bear', 35.4, 10.4, { solid: [35, 11, 2, 1] });
+  prop('bench-left', 39.0, 11.4, { solid: [39, 11, 2, 1] });
+  prop('bush-green', 41.0, 6.0);
+  prop('bush-dark', 41.0, 7.0);
+  prop('crate', 54.0, 11.4, { solid: [54, 12, 2, 1] });
+  prop('bush-green', 56.0, 11.0);
 
-  /* short spurs, so nothing important opens onto bare grass */
-  GROUND.push(...lane('dirt', 0, [[19, 16], [19, 12], [16, 12]]));
-  GROUND.push(...lane('dirt', 0, [[33, 19], [33, 21]]));
-  GROUND.push(...lane('dirt', 0, [[49, 16], [49, 14], [52, 13]]));
-  GROUND.push(...lane('dirt', 0, [[52, 13], [58, 10]]));
-  GROUND.push(...lane('dirt', 0, [[19, 20], [13, 20], [12, 16]]));
-  GROUND.push(...lane('dirt', 0, [[71, 22], [71, 27]]));
-  GROUND.push(...lane('dirt', 0, [[36, 26], [36, 27]]));
-  GROUND.push(...lane('dirt', 0, [[45, 26], [45, 27]]));
-  GROUND.push(...lane('dirt', 0, [[11, 35], [11, 37]]));
-  GROUND.push(...lane('dirt', 0, [[26, 31], [26, 32]]));
-  GROUND.push(...lane('dirt', 0, [[55, 31], [55, 32]]));
-  GROUND.push(...lane('dirt', 0, [[70, 38], [70, 40]]));
-  GROUND.push(...lane('dirt', 0, [[16, 51], [20, 50]]));
+  /* ======================================================================== */
+  /* BLOCK B — Market Row                                                     */
+  /* ======================================================================== */
+  /* Shops meet the pavement directly, the way shops do, so there are no front
+     gardens along here. What there is, is clutter against the shopfronts. */
 
-  /* water last: it wins over any lane, and it is the one surface nobody can
-     walk on */
+  prop('crate', 23.2, 24.4, { solid: [23, 25, 2, 1] });
+  prop('crate', 31.4, 23.4, { solid: [31, 24, 2, 1] });
+  prop('bench-right', 32.0, 25.4, { solid: [32, 25, 2, 1] });
+  prop('crate', 42.0, 24.4, { solid: [42, 25, 2, 1] });
+  prop('bench-left', 50.4, 25.4, { solid: [50, 25, 2, 1] });
+  prop('bush-green', 43.0, 25.0);
+  prop('bush-dark', 51.0, 24.0);
+  /* lamps on the main street only, which is the point of a main street */
+  prop('lamp', 14.0, 26.2);
+  prop('lamp', 24.0, 26.2);
+  prop('lamp', 36.0, 26.2);
+  prop('lamp', 44.0, 26.2);
+  prop('lamp', 58.0, 26.2);
+  prop('lamp', 20.0, 30.2);
+  prop('lamp', 32.0, 30.2);
+  prop('lamp', 50.0, 30.2);
+  prop('lamp', 62.0, 30.2);
+
+  /* Back gardens off the service alley, divided one per address. A block
+     interior that is bare lawn is what makes a town look unfinished. */
+  hedge(24, 18, 25);                             // market | post office
+  hedge(32, 18, 25);                             // post office | the Cut
+  hedge(42, 18, 25);                             // lost & found | pub
+  hedge(50, 18, 25);                             // pub | cinema
+  prop('rail-fence', 25.0, 17.6, { solid: [25, 18, 2, 1] });
+  prop('crate', 28.0, 21.4, { solid: [28, 22, 2, 1] });
+  prop('flower-orange', 26.0, 22.0);
+  prop('flower-cream', 30.0, 23.0);
+  prop('bush-green', 26.0, 25.0);
+  prop('crate', 37.0, 17.6, { solid: [37, 18, 2, 1] });
+  prop('crate', 39.6, 18.4, { solid: [39, 19, 2, 1] });
+  prop('rail-fence', 36.0, 17.6, { solid: [36, 18, 2, 1] });
+  prop('crate', 45.0, 17.6, { solid: [45, 18, 2, 1] });
+  prop('bench-left', 47.4, 17.6, { solid: [47, 18, 2, 1] });
+  prop('stone', 49.0, 20.0);
+  prop('flower-yellow', 45.0, 21.0);
+  prop('flower-blue', 48.0, 21.0);
+
+  /* the walled garden on the corner of West Lane */
+  fenceRun(12, 14, 17, -9);
+  prop('flower-blue', 13.0, 15.0);
+  prop('flower-yellow', 12.0, 16.0);
+
+  /* ======================================================================== */
+  /* THE GREEN — the middle of town, and the one place that is grass          */
+  /* ======================================================================== */
+  /* A village green is a lawn with paths worn across it, not a paved square.
+     Paving the whole thing is what turns the middle of a town into a car
+     park. The fountain sits where the two paths meet. */
+
+  /* Two worn tracks and a small apron, and that is all. Paving the routes
+     across a lawn cuts it into four grey-edged rectangles; wearing them into
+     the grass is what people actually do to a green. */
+  paint('paving', 18, 33, 4, 2);                 // the apron round the fountain
+  paint('dirt', 20, 30, 1, 3);                   // the track up to Main Street
+  paint('dirt', 20, 35, 1, 5);                   // and down to South Lane
+  paint('dirt', 12, 36, 8, 1);                   // the track worn west
+  paint('dirt', 21, 36, 12, 1);                  // and east, towards the Cut
+
+  prop('fountain-0', 19.2, 32.6, {
+    anim: ['fountain-0', 'fountain-1', 'fountain-2', 'fountain-3', 'fountain-4'],
+    solid: [19, 33, 3, 2]
+  });
+  /* benches face the fountain, in pairs, each with a lamp behind it */
+  prop('bench-right', 17.0, 34.4, { solid: [17, 34, 2, 1] });
+  prop('bench-left', 22.0, 34.4, { solid: [22, 34, 2, 1] });
+  prop('lamp-twin', 16.0, 31.2);
+  prop('lamp-twin', 24.0, 31.2);
+  prop('bench-left', 13.0, 37.4, { solid: [13, 37, 2, 1] });
+  prop('lamp', 15.0, 37.2);
+  prop('bench-right', 27.0, 37.4, { solid: [27, 37, 2, 1] });
+  prop('lamp', 26.0, 37.2);
+  /* flowerbeds in two clumps, not dotted about */
+  prop('flower-orange', 14.0, 31.0);
+  prop('flower-yellow', 15.0, 31.0);
+  prop('flower-cream', 14.0, 32.0);
+  prop('flower-orange', 28.0, 31.0);
+  prop('flower-blue', 29.0, 31.0);
+  prop('flower-yellow', 28.0, 32.0);
+  prop('bush-green', 12.0, 36.0);
+  prop('bush-dark', 12.0, 37.0);
+  prop('bush-green', 30.0, 36.0);
+  prop('bush-dark', 30.0, 37.0);
+  /* chalk where children would actually draw: on the paving, near the seats */
+  /* Chalk only goes on paving: the sprites are cut with the paving slab still
+     under them, so on grass they read as grey patches rather than drawings. */
+  prop('chalk-sun', 18.0, 33.0);
+  prop('chalk-cat', 18.0, 34.0);
+  prop('chalk-rainbow', 26.0, 30.0);
+  prop('chalk-smiley', 30.0, 30.0);
+  prop('chalk-heart', 14.0, 30.0);
+  prop('robin-0', 24.0, 37.4, { anim: ['robin-0', 'robin-1'], slow: true });
+  prop('butterfly-orange', 14.0, 38.0, { float: true });
+  prop('butterfly-blue', 30.0, 33.0, { float: true });
+  prop('stone', 13.0, 32.0);
+  prop('stone', 29.0, 38.0);
+
+  /* the court at the foot of the Cut, where the map sign stands */
+  prop('bench-left', 30.0, 38.4, { solid: [30, 38, 2, 1] });
+  prop('lamp', 32.0, 38.2);
+  prop('bush-green', 35.0, 31.0);
+  prop('bush-dark', 35.0, 32.0);
+
+  /* ======================================================================== */
+  /* THE WORKS YARD, THE BUS STOP AND THE MILLPOND                            */
+  /* ======================================================================== */
+
+  paint('dirt', 43, 32, 16, 7);                  // the works yard behind the row
+  prop('crate', 42.0, 36.4, { solid: [42, 37, 2, 1] });
+  prop('crate', 50.4, 34.4, { solid: [50, 35, 2, 1] });
+  prop('crate', 51.0, 37.4, { solid: [51, 38, 2, 1] });
+  prop('rail-tall', 57.0, 33.0, { solid: [57, 35, 2, 1] });
+  prop('fence-post', 42.6, 31.4);
+  prop('rail-fence', 43.0, 32.0, { solid: [43, 32, 2, 1] });
+  prop('rail-fence', 45.0, 32.0, { solid: [45, 32, 2, 1] });
+  prop('lamp', 43.0, 39.2);
+  prop('lamp', 56.0, 39.2);
+  prop('stone', 55.0, 33.0);
+  prop('bush-dark', 58.0, 37.0);
+
+  paint('dirt', 18, 44, 15, 7);                  // the bus apron
+  prop('bus', 18.0, 45.0, { solid: [18, 47, 5, 2] });
+  prop('shelter', 27.0, 45.0, { solid: [27, 46, 3, 2] });
+  prop('bus-sign', 31.0, 45.4);
+  prop('lamp', 32.0, 44.2);
+  prop('bench-left', 26.0, 49.4, { solid: [26, 49, 2, 1] });
+  prop('crate', 19.0, 49.4, { solid: [19, 50, 2, 1] });
+  prop('bush-green', 17.0, 47.0);
+  prop('bush-dark', 33.0, 47.0);
+  /* the cottage and the caravan out past the bus, each with a garden */
+  paint('paving', 14, 49, 1, 2);
+  fenceRun(12, 17, 50, 14);
+  prop('picket-gate', 14.0, 50.0);
+  prop('flower-cream', 13.0, 49.0);
+  prop('flower-orange', 16.0, 49.0);
+  prop('rail-fence', 36.0, 49.0, { solid: [36, 49, 2, 1] });
+  prop('rail-fence', 38.0, 49.0, { solid: [38, 49, 2, 1] });
+  prop('lamp', 41.0, 49.2);
+
+  /* the millpond and the riverside. The bridge carries the path over the
+     brook, and the walk ends at a bench looking across the water. */
+  prop('bridge-v', 60.9, 43.4, { flat: true });
+  prop('bridge-h', 62.6, 48.4, { flat: true });
+  prop('bench-left', 57.0, 53.4, { solid: [57, 53, 2, 1] });
+  prop('bench-right', 45.0, 53.4, { solid: [45, 53, 2, 1] });
+  prop('bench-left', 59.0, 30.4, { solid: [59, 30, 2, 1] });
+  prop('lamp', 60.0, 41.2);
+  prop('lamp', 60.0, 52.2);
+  prop('lamp', 60.0, 31.2);
+  prop('bush-green', 45.0, 43.0);
+  prop('bush-dark', 46.0, 42.0);
+  prop('bush-green', 58.0, 42.0);
+  prop('bush-dark', 58.0, 49.0);
+  prop('bush-green', 59.0, 36.0);
+  prop('stone', 44.0, 46.0);
+  prop('stone', 59.0, 51.0);
+  prop('stone', 60.0, 22.0);
+  prop('flower-blue', 44.0, 49.0);
+  prop('flower-cream', 58.0, 54.0);
+  prop('flower-yellow', 59.0, 34.0);
+  prop('robin-0', 50.0, 52.4, { anim: ['robin-0', 'robin-1'], slow: true });
+  prop('butterfly-blue', 55.0, 41.0, { float: true });
+  prop('butterfly-orange', 60.0, 48.0, { float: true });
+  prop('rail-fence', 44.0, 54.0, { solid: [44, 54, 2, 1] });
+  prop('rail-fence', 54.0, 54.0, { solid: [54, 54, 2, 1] });
+
+  /* --- planting, from the middle outwards ---------------------------------- */
+
+  /* street trees on the verge, in line, because somebody planted them */
+  [13, 27, 43, 59].forEach((x) => tree('tree-cherry', x, 30.6));
+  [15, 31, 47].forEach((x) => tree('tree-apple', x, 17.6));
+
+  /* the green's own trees, round its edge rather than in the middle of it */
+  copse(14.0, 36.6, 3, 0.8);
+  copse(28.5, 36.6, 3, 0.8);
+  copse(29.5, 31.4, 2, 0.7);
+  copse(13.5, 31.0, 2, 0.7);
+
+  /* the orchards: one behind the community centre, one out past the pond */
+  orchard(4, 5, 2, 3);
+  orchard(57, 5, 2, 3);
+
+  /* copses filling the ground between districts, thinning towards the edge */
+  const CLUMPS = [
+    [6, 15, 3], [6, 21, 3], [5, 34, 3], [6, 38, 3], [7, 44, 3], [8, 51, 4],
+    [28, 52, 4], [34, 52, 3], [42, 46, 3], [45, 44, 2],
+    [60, 34, 4], [64, 37, 3], [66, 45, 3], [67, 52, 3], [40, 53, 3],
+    [61, 21, 4], [67, 23, 3], [62, 11, 3], [67, 33, 3],
+    [57, 7, 3], [60, 5, 3], [6, 8, 3], [66, 38, 3]
+  ];
+  CLUMPS.forEach((c) => copse(c[0], c[1], c[2], 1.1 + rnd() * 0.7));
+
+  /* Rough ground first, so the town does not meet the wood at a hard line */
+  [[8, 6], [20, 4], [31, 4], [46, 4], [7, 11], [5, 19], [5, 27], [5, 35],
+   [6, 45], [8, 52], [17, 53], [30, 54], [41, 53], [51, 53], [58, 19],
+   [59, 24], [38, 4], [59, 13]].forEach((c) => scrub(c[0], c[1], 4 + Math.floor(rnd() * 3)));
+
+  /* two hedgerows left over from the fields this town was built in */
+  hedgerow(4, 8, 20);
+  hedgerow(4, 8, 34);
+  hedgerow(14, 22, 53);
+  hedgerow(45, 53, 55);
+
+  /* The edge of the wood. The depth wanders a long way and now and then the
+     line opens right up, so it reads as woodland rather than as a fence made
+     of trees. A fixed depth is the thing that looks artificial. */
+  function edge(steps, place) {
+    let depth = 2.4;
+    for (let i = 0; i < steps; i += 1) {
+      depth += (rnd() - 0.5) * 2.2;
+      depth = Math.max(0.3, Math.min(3.6, depth));
+      const open = rnd() > 0.82 ? rnd() * 0.8 : depth;
+      for (let d = 0; d < open; d += 1) place(i, d + rnd() * 0.9, rnd());
+    }
+  }
+  edge(Math.ceil(COLS / 1.9), (i, d, j) => {
+    const x = -1 + i * 1.9 + j * 1.3;
+    tree(pick(WOOD), x, d * 1.3 - 0.6);
+    tree(pick(KINDS), x + 0.6, ROWS - 3.6 + d * 1.25);
+  });
+  edge(Math.ceil(ROWS / 1.9), (i, d, j) => {
+    const y = 2 + i * 1.9 + j * 1.3;
+    tree(pick(WOOD), d * 1.3 - 0.6, y);
+  });
+
+  /* The far bank of the river: trees you can see the whole time and never
+     reach, which is a better reason not to walk east than a hedge. */
+  for (let y = -1; y < ROWS; y += 1.4) {
+    tree(pick(WOOD), COLS - 2.4 + rnd() * 1.2, y + rnd() * 1.1);
+    if (rnd() > 0.35) tree(pick(KINDS), COLS - 1.3 + rnd(), y + rnd() * 1.2);
+  }
+
+  /* --- ground and collision, finished -------------------------------------- */
+  /* Water last: it wins over anything a street painted, and it is the one
+     surface nobody can walk on. Buildings and furniture mark themselves from
+     their own silhouettes; see stampMask in game.js. */
+
   WATER.forEach((key) => {
     const x = key % COLS;
     const y = Math.floor(key / COLS);
     GROUND.push({ rect: [x, y, 1, 1], tile: shoreTile(x, y) });
   });
-
-  /* --- collision --------------------------------------------------------- */
-  /* A continuous band under the trees, plus the water. Streets are painted
-     underneath the band at both map edges, so each one reads as carrying on
-     into the woods instead of ending at a hard green seam. */
 
   const SOLIDS = [
     [0, 0, 4, ROWS], [COLS - 4, 0, 4, ROWS],
@@ -188,266 +514,39 @@ window.FIELD_TRIP_WORLD = (function () {
   WATER.forEach((key) => {
     const x = key % COLS;
     const y = Math.floor(key / COLS);
-    if (!onBridge(x, y)) SOLIDS.push([x, y, 1, 1]);
+    if (!onDeck(x, y)) SOLIDS.push([x, y, 1, 1]);
   });
 
-  /* --- buildings ---------------------------------------------------------- */
-  /* Every sprite in the pack faces down, so a door is the tile row directly
-     below its building and a building has to sit above the lane it belongs
-     to. No `id` means scenery: no door, no plaque, nothing to open. */
-
-  const BUILDINGS = [
-    /* Market Row, staggered along the bent street */
-    { id: 'civic', sprite: 'b-community', at: [15, 8], door: [19, 16], plaque: 'the community center' },
-    { id: 'market', sprite: 'b-market', at: [28, 11], door: [33, 19], plaque: 'the market' },
-    { id: 'library', sprite: 'b-library', at: [45, 9], door: [49, 16], plaque: 'the library' },
-
-    /* the four that face the green */
-    { id: 'post', sprite: 'b-post', at: [34, 20], door: [36, 26], plaque: 'the post office' },
-    { id: 'lostfound', sprite: 'b-house', at: [43, 21], door: [45, 26], plaque: 'the lost & found' },
-    { id: 'pub', sprite: 'b-pub', at: [24, 26], door: [26, 31], plaque: 'the pub' },
-    { id: 'arcade', sprite: 'b-arcade', at: [53, 25], door: [55, 31], plaque: 'the arcade' },
-
-    /* the makers' yard, off the west side of the ring */
-    { id: 'workshop', sprite: 'b-blacksmith', at: [9, 29], door: [11, 35], plaque: 'the workshop' },
-    { id: 'drafting', sprite: 'b-trailer', at: [16, 32], door: [18, 36], plaque: 'the drafting room' },
-
-    /* scenery: an ordinary town going on around the one you can open */
-    { sprite: 'b-school', at: [62, 7] },
-    { sprite: 'b-cinema', at: [61, 16] },
-    { sprite: 'b-house', at: [69, 22] },
-    { sprite: 'b-house', at: [12, 46] },
-    { sprite: 'b-trailer', at: [54, 50] }
-  ];
-
-  /* --- props -------------------------------------------------------------- */
-
-  const PROPS = [];
-  const prop = (sprite, x, y, extra) => PROPS.push(Object.assign({ sprite: sprite, at: [x, y] }, extra || {}));
-
-  /* the green. The fountain stands in a grass verge rather than on the
-     paving, which is what stops the middle of town reading as a car park. */
-  prop('fountain-0', 40.2, 30.3, {
-    anim: ['fountain-0', 'fountain-1', 'fountain-2', 'fountain-3', 'fountain-4'],
-    solid: [40, 31, 3, 2]
-  });
-  prop('bush-green', 38.6, 32.4);
-  prop('bush-dark', 43.4, 32.6);
-  prop('flower-yellow', 39.0, 33.0);
-  prop('flower-cream', 43.0, 31.0);
-  prop('flower-orange', 44.0, 33.0);
-  prop('robin-0', 41.0, 33.2, { anim: ['robin-0', 'robin-1'], slow: true });
-  prop('bench-left', 37.0, 36.4, { solid: [37, 36, 2, 1] });
-  prop('bench-right', 46.0, 33.0, { solid: [46, 33, 2, 1] });
-  prop('bench-right', 38.0, 27.2, { solid: [38, 28, 2, 1] });
-  prop('bush-dark', 48.0, 30.0);
-  prop('bush-green', 47.0, 35.0);
-  prop('stone', 33.0, 35.0);
-  prop('chalk-cat', 47.0, 36.0);
-  prop('chalk-sun', 35.0, 30.0);
-  prop('chalk-rainbow', 47.0, 31.0);
-  prop('chalk-smiley', 36.0, 35.0);
-  prop('chalk-heart', 39.0, 36.0);
-  prop('butterfly-orange', 32.0, 28.0, { float: true });
-  prop('butterfly-blue', 50.0, 34.0, { float: true });
-  prop('lamp', 33.0, 28.1);
-  prop('lamp', 49.0, 28.1);
-  prop('lamp-twin', 34.0, 36.3);
-  prop('lamp', 48.0, 36.1);
-
-  /* Market Row: lamps and shop clutter beside the shopfronts, never in the
-     walking lane */
-  prop('lamp', 12.0, 20.1);
-  prop('lamp', 25.0, 21.1);
-  prop('lamp', 41.0, 21.1);
-  prop('lamp', 52.0, 19.1);
-  prop('crate', 39.0, 16.6, { solid: [39, 17, 2, 1] });
-  prop('crate', 26.0, 13.6, { solid: [26, 14, 2, 1] });
-  prop('bench-left', 42.0, 14.2, { solid: [42, 14, 2, 1] });
-  prop('bush-green', 41.0, 14.4);
-  prop('bush-dark', 44.0, 14.4);
-
-  /* the allotments: fenced plots at the top of the west lane */
-  prop('picket', 7.0, 10.0, { solid: [7, 10, 3, 1] });
-  prop('picket', 10.0, 10.0, { solid: [10, 10, 3, 1] });
-  prop('picket-gate', 13.0, 10.0);
-  prop('picket', 7.0, 15.0, { solid: [7, 15, 3, 1] });
-  prop('picket', 10.0, 15.0, { solid: [10, 15, 3, 1] });
-  prop('flower-orange', 8.0, 12.0);
-  prop('flower-yellow', 9.0, 13.0);
-  prop('flower-blue', 11.0, 12.0);
-  prop('flower-cream', 12.0, 13.0);
-  prop('flower-orange', 10.0, 11.0);
-  prop('flower-yellow', 12.0, 11.0);
-  prop('crate', 14.0, 12.6, { solid: [14, 13, 2, 1] });
-  prop('rail-fence', 6.0, 23.0, { solid: [6, 23, 2, 1] });
-  prop('rail-fence', 8.0, 23.0, { solid: [8, 23, 2, 1] });
-  prop('rail-fence', 10.0, 23.0, { solid: [10, 23, 2, 1] });
-
-  /* the makers' yard */
-  prop('crate', 12.0, 38.6, { solid: [12, 39, 2, 1] });
-  prop('crate', 19.0, 39.6, { solid: [19, 40, 2, 1] });
-  prop('rail-fence', 8.0, 41.0, { solid: [8, 41, 2, 1] });
-  prop('rail-fence', 10.0, 41.0, { solid: [10, 41, 2, 1] });
-  prop('fence-post', 7.6, 40.4);
-  prop('fence-post', 12.0, 40.4);
-  prop('rail-tall', 21.0, 35.0, { solid: [21, 37, 2, 1] });
-  prop('lamp', 17.0, 40.1);
-  prop('bush-dark', 7.0, 37.0);
-  prop('stone', 8.0, 39.0);
-
-  /* the school field: a playground is unmistakably not a portfolio button */
-  prop('swing', 55.4, 8.6, { solid: [55, 11, 3, 1] });
-  prop('slide', 59.2, 7.4, { solid: [59, 11, 2, 1] });
-  prop('spring-bear', 56.4, 12.4, { solid: [56, 13, 2, 1] });
-  prop('picket', 54.0, 15.0, { solid: [54, 15, 3, 1] });
-  prop('picket', 57.0, 15.0, { solid: [57, 15, 3, 1] });
-  prop('bench-left', 60.6, 12.4, { solid: [60, 13, 2, 1] });
-  prop('fence', 74.0, 8.0, { solid: [74, 10, 5, 1] });
-
-  /* the millpond: a bridge on the path, banks to sit on, and reeds */
-  prop('bridge-h', 63.6, 54.6, { flat: true });
-  prop('bench-right', 69.0, 38.4, { solid: [69, 39, 2, 1] });
-  prop('bench-left', 76.0, 48.0, { solid: [76, 48, 2, 1] });
-  prop('lamp-twin', 74.0, 42.3);
-  prop('lamp', 62.0, 53.1);
-  prop('bush-green', 58.0, 43.0);
-  prop('bush-dark', 58.0, 46.0);
-  prop('bush-green', 76.0, 44.0);
-  prop('bush-dark', 75.0, 40.0);
-  prop('bush-green', 63.0, 51.0);
-  prop('bush-dark', 69.0, 51.0);
-  prop('stone', 59.0, 48.0);
-  prop('stone', 78.0, 47.0);
-  prop('flower-blue', 60.0, 40.0);
-  prop('flower-cream', 73.0, 51.0);
-  prop('flower-yellow', 79.0, 43.0);
-  prop('butterfly-blue', 66.0, 35.0, { float: true });
-  prop('butterfly-orange', 71.0, 52.0, { float: true });
-  prop('rail-fence', 61.0, 58.0, { solid: [61, 58, 2, 1] });
-  prop('rail-fence', 70.0, 58.0, { solid: [70, 58, 2, 1] });
-  prop('robin-0', 74.0, 46.4, { anim: ['robin-0', 'robin-1'], slow: true });
-
-  /* the arrival apron: a shelter, a sign, and the bus you came in on */
-  prop('shelter', 35.0, 55.0, { solid: [35, 56, 3, 2] });
-  prop('bus-sign', 39.5, 55.4);
-  prop('bus', 26.0, 55.0, { solid: [26, 57, 5, 2] });
-  prop('lamp', 40.0, 52.1);
-  prop('bench-left', 31.0, 59.6, { solid: [31, 60, 2, 1] });
-  prop('crate', 23.0, 58.6, { solid: [23, 59, 2, 1] });
-  prop('bush-green', 41.0, 58.0);
-  prop('bush-dark', 22.0, 55.0);
-
-  /* the lane behind the school */
-  prop('lamp', 66.0, 24.1);
-  prop('lamp', 78.0, 34.1);
-  prop('rail-fence', 67.6, 28.0, { solid: [68, 28, 2, 1] });
-  prop('rail-fence', 71.6, 28.0, { solid: [72, 28, 2, 1] });
-  prop('bush-green', 66.0, 29.0);
-  prop('bench-right', 64.0, 24.6, { solid: [64, 25, 2, 1] });
-  prop('stone', 80.0, 27.0);
-
-  /* the cottage down the south-west lane */
-  prop('picket', 12.0, 51.0, { solid: [12, 51, 3, 1] });
-  prop('picket', 15.0, 51.0, { solid: [15, 51, 3, 1] });
-  prop('flower-cream', 13.0, 52.0);
-  prop('flower-orange', 16.0, 52.0);
-  prop('flower-yellow', 11.0, 52.0);
-  prop('lamp', 21.0, 44.1);
-  prop('lamp', 24.0, 53.1);
-  prop('stone', 27.0, 49.0);
-  prop('bush-dark', 18.0, 43.0);
-  prop('bush-green', 26.0, 46.0);
-  prop('rail-fence', 28.0, 53.0, { solid: [28, 53, 2, 1] });
-  prop('rail-fence', 30.0, 53.0, { solid: [30, 53, 2, 1] });
-
-  /* --- trees --------------------------------------------------------------- */
-  /* A seeded scatter, not a picket line: two irregular ranks round the edge,
-     then pockets and hedgerows inside the boundary. The band in SOLIDS does
-     the collision out there; the trunks and overlapping canopies explain it. */
-
-  const KINDS = ['tree-pine', 'tree-apple', 'tree-pine', 'tree-cherry', 'tree-apple', 'tree-pine', 'tree-apple', 'tree-cherry'];
-  let seed = 20260820;
-  function rnd() {
-    seed = (seed * 1664525 + 1013904223) % 4294967296;
-    return seed / 4294967296;
-  }
-  const TREES = [];
-  const tree = (x, y, i) => TREES.push([KINDS[Math.abs(Math.round(i)) % KINDS.length], x, y]);
-
-  for (let x = -1, i = 0; x < COLS; x += 1.7, i += 1) {
-    tree(x + rnd() * 1.4, rnd() * 1.6, i);
-    tree(x + rnd() * 1.6 - 0.4, 1.9 + rnd() * 1.5, i + 3);
-    tree(x + rnd() * 1.5, ROWS - 4 + rnd() * 1.4, i + 5);
-    tree(x + rnd() * 1.4 - 0.3, ROWS - 2.2 + rnd() * 1.3, i + 1);
-  }
-  for (let y = 3, i = 0; y < ROWS - 3; y += 1.7, i += 1) {
-    tree(rnd() * 1.5, y + rnd() * 1.4, i + 2);
-    tree(1.8 + rnd() * 1.4, y + rnd() * 1.5 - 0.4, i + 6);
-    tree(COLS - 4 + rnd() * 1.4, y + rnd() * 1.4, i + 4);
-    tree(COLS - 2.2 + rnd() * 1.3, y + rnd() * 1.5 - 0.3, i + 7);
-  }
-
-  /* Woodland pockets and hedgerows inside the boundary. These are the trees
-     that block a tile, so every one of them is somewhere nobody has to walk.
-     The last group is deliberate foreground: a canopy overlapping a building's
-     shoulder gives the row depth, and none of them is near a door. */
-  const INLAND = [
-    /* the orchard above the allotments, and the west shoulder */
-    [6, 6], [9, 6], [12, 5], [16, 6], [20, 5], [24, 6], [5, 20], [4, 15], [6, 27], [9, 26],
-    [17, 26], [14, 28], [6, 31], [7, 34], [17, 22], [24, 9], [27, 6], [31, 6],
-    /* the hedgerow between Market Row and the green */
-    [26, 23], [29, 25], [32, 24], [46, 23], [50, 22], [30, 28], [31, 25],
-    /* the south-west, so the cottage lane runs through woodland */
-    [8, 43], [6, 47], [10, 55], [15, 56], [17, 44], [20, 58], [24, 49], [30, 60], [26, 44],
-    [31, 50], [30, 46], [36, 60], [43, 59], [50, 60],
-    /* the green's south-east shoulder, teasing the pond from the square */
-    [51, 37], [54, 34], [48, 47], [44, 49], [40, 51], [45, 52], [49, 39], [46, 39],
-    /* the pond's wooded banks */
-    [58, 33], [62, 32], [66, 31], [70, 32], [58, 36], [80, 38], [82, 43], [81, 55], [74, 60],
-    [66, 61], [58, 60], [79, 50], [82, 33],
-    /* the school's back field and the north-east */
-    [58, 16], [77, 12], [81, 21], [84, 28], [79, 8], [51, 5], [55, 4], [60, 4], [68, 5], [73, 4],
-    /* copses, so the grass between districts is somewhere rather than a gap */
-    [5, 28], [7, 31], [16, 28], [6, 24], [19, 30], [4.5, 36], [5, 39],
-    [22, 8], [26, 9], [30, 7], [20, 12], [25, 13], [40, 6], [44, 5], [49, 6],
-    [29, 47], [31, 50], [30, 52], [30, 49], [39, 49], [42, 47], [41, 53], [41, 58], [38, 51],
-    [47, 50], [52, 48], [49, 54], [56, 53], [45, 45], [55, 59],
-    [81, 47], [83, 52], [72, 61], [84, 58], [7, 57], [13, 59], [18, 61], [21, 57],
-    /* the verge in the middle of the green */
-    [37.4, 30.4], [43.4, 30.8],
-    /* foreground: canopies over a shoulder, never over a door */
-    [13.6, 13.0], [38.4, 15.4], [53.0, 8.4], [60.4, 17.6], [29.4, 28.6], [58.4, 28.4], [42.6, 24.4]
-  ];
-  INLAND.forEach((t, i) => tree(t[0], t[1], i * 3));
-
-  /* --- people, signs and the cat ------------------------------------------ */
+  /* --- people, signs and the cat -------------------------------------------- */
 
   const NPCS = [
-    { id: 'npc-a', at: [38.5, 33.6], dir: 'right' },
-    { id: 'npc-b', at: [37.5, 58.6], dir: 'up' },
-    { id: 'npc-c', at: [51.5, 33.6], dir: 'up' }
+    { id: 'npc-a', at: [21.5, 37.6], dir: 'up' },
+    { id: 'npc-b', at: [26.5, 48.6], dir: 'up' },
+    { id: 'npc-c', at: [27.5, 36.6], dir: 'right' }
   ];
 
   /* Things you can look at outdoors. `room` is which page of the map
      directory they belong to, so the green and the millpond read as two
      places rather than one undifferentiated outside. */
   const SQUARE = [
-    { id: 'welcome', sprite: 'sign-stand', at: [35.0, 27.0] },
-    { id: 'notice', sprite: 'easel', at: [46.0, 27.0] },
-    { id: 'mapsign', sprite: 'sign-stand', at: [44.0, 35.0] },
-    { id: 'fountain', sprite: null, at: [41.0, 31.0] },
-    { id: 'bench', sprite: null, at: [37.4, 36.6] },
-    { id: 'noticeboard', sprite: 'sign-stand', at: [70.0, 38.6], room: 'pond' },
-    { id: 'water', sprite: null, at: [64.0, 40.4], room: 'pond' },
-    { id: 'bridge', sprite: null, at: [66.0, 55.4], room: 'pond' }
+    { id: 'welcome', sprite: 'sign-stand', at: [24.0, 30.0] },
+    { id: 'notice', sprite: 'easel', at: [16.0, 30.0] },
+    { id: 'mapsign', sprite: 'sign-stand', at: [31.0, 34.0] },
+    { id: 'fountain', sprite: null, at: [20.0, 35.0] },
+    { id: 'bench', sprite: null, at: [17.4, 35.6] },
+    { id: 'noticeboard', sprite: 'sign-stand', at: [47.0, 47.4], room: 'pond' },
+    { id: 'water', sprite: null, at: [50.0, 51.4], room: 'pond' },
+    { id: 'bridge', sprite: null, at: [62.0, 48.4], room: 'pond' },
+    /* the bus you arrived on, and the sign it stops at */
+    { id: 'ride', sprite: null, at: [20.4, 48.6], room: 'stop' },
+    { id: 'timetable', sprite: null, at: [31.0, 47.2], room: 'stop' }
   ];
 
-  const CAT_SPOT = [42.5, 29.0];
-  const SPAWN = { tx: 33.5, ty: 58.5, dir: 'up' };
+  const CAT_SPOT = [22.5, 38.0];
+  const SPAWN = { tx: 24.5, ty: 48.5, dir: 'up' };
 
   return {
-    version: 4,
+    version: 5,
     cols: COLS,
     rows: ROWS,
     tile: 16,

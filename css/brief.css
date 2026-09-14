@@ -269,35 +269,6 @@ html[data-mode='brief'] { scroll-behavior: smooth; }
   color: var(--ink-2);
 }
 
-.hero__open {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  margin: 20px 0 0;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--brand);
-}
-
-.hero__open i {
-  position: relative;
-  top: -2px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--orange);
-  flex: 0 0 auto;
-}
-
-.hero__open i::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1.5px solid var(--orange);
-  opacity: 0;
-}
-
 .hero__do {
   display: flex;
   flex-wrap: wrap;
@@ -1054,13 +1025,6 @@ html[data-mode='brief'] { scroll-behavior: smooth; }
   margin: clamp(26px, 3.4vw, 42px) 0 0;
 }
 
-.end__status {
-  margin: 18px 0 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--ink-3);
-}
-
 /* the envelope enters the composition from the right: its right edge lands
    just inside the window at any width, so nothing looks accidentally cut */
 .end__stamp {
@@ -1154,8 +1118,6 @@ html[data-mode='brief'] { scroll-behavior: smooth; }
   #briefRoot.is-fresh .hero__body > *:nth-child(5) { animation-delay: 210ms; }
   #briefRoot.is-fresh .hero__body > *:nth-child(6) { animation-delay: 240ms; }
 
-  .hero__open i::after { animation: brief-ping 2800ms ease-out infinite; }
-
   /* the circle round the project number is drawn again each time the project
      changes, because that is the moment it is about */
   .slide.is-on .idx__ring path {
@@ -1167,11 +1129,6 @@ html[data-mode='brief'] { scroll-behavior: smooth; }
 @keyframes brief-rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
-}
-
-@keyframes brief-ping {
-  0% { opacity: 0.5; transform: scale(0.7); }
-  70%, 100% { opacity: 0; transform: scale(1.5); }
 }
 
 @keyframes brief-ring {
@@ -1273,12 +1230,20 @@ html[data-mode='brief'] { scroll-behavior: smooth; }
 
 /* fingers are not cursors: the drawn size stays, the hit area grows */
 @media (pointer: coarse) {
+  /* Inline links keep their type size and grow an invisible hit area instead,
+     because making body links 44px tall would wreck the page. The rows they
+     sit in get more vertical gap so two neighbouring hit areas cannot end up
+     stacked on top of each other. */
   .q-link, .hero__mail a, .foot__modes a { position: relative; }
   .q-link::before, .hero__mail a::before, .foot__modes a::before {
     content: '';
     position: absolute;
-    inset: -10px -6px;
+    inset: -13px -8px;
   }
-  .top__nav a { display: inline-flex; align-items: center; min-height: 38px; }
+  .hero__also, .end__do .hero__also { row-gap: 16px; }
+  .entry__l, .proof__lens, .slide__links { row-gap: 14px; }
+  .top__nav a { display: inline-flex; align-items: center; min-height: 40px; }
+  .top__me { display: inline-flex; align-items: center; min-height: 40px; }
   .step { width: 50px; height: 44px; }
+  .move { min-width: 44px; min-height: 44px; }
 }

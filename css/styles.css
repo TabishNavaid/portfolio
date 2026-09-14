@@ -167,7 +167,10 @@ picture {
 }
 
 a { color: var(--accent-ink); }
-html.dark a { color: var(--accent); }
+/* Buttons carry their own colours. Without the :not(), this rule's (0,1,1)
+   beats .btn--primary's (0,1,0) and paints the label in --accent — which in
+   the dark theme is also the button's background, so the text vanished. */
+html.dark a:not(.btn) { color: var(--accent); }
 
 code {
   padding: 1px 4px;
@@ -590,7 +593,7 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   position: relative;
   min-height: 0;
   overflow: hidden;
-  background: #8eb972;
+  background: #1d2725;
 }
 
 .bus-ride__canvas {
@@ -601,7 +604,7 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   aspect-ratio: 16 / 9;
   image-rendering: pixelated;
   object-fit: contain;
-  background: #79ad68;
+  background: #1d2725;
 }
 
 .bus-ride__overlay {
@@ -673,6 +676,19 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
 
 .bus-ride__deck p { margin: 0; text-align: center; font-size: 13px; }
 .bus-ride__lane { min-width: 112px; }
+
+/* The lane buttons belong to a bus that is moving. They keep their space so
+   the cab does not resize when the ride starts, but they are not offered,
+   not focusable and not announced until there is a lane to change. */
+.bus-ride__lane {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.bus-ride[data-phase="playing"] .bus-ride__lane { visibility: visible; opacity: 1; }
+.bus-ride:not([data-phase="playing"]) .bus-ride__hud { opacity: 0.45; }
+.bus-ride__hud { transition: opacity 200ms ease; }
+
 .bus-ride.is-crashed .bus-ride__screen { animation: bus-bump 240ms ease-out; }
 
 @keyframes bus-bump {
@@ -682,21 +698,88 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   78% { transform: translateX(-3px); }
 }
 
-@media (max-width: 620px) {
+/* Landscape on a phone is 390px tall. The ride was keeping its window frame
+   and giving the road 200 of them; full-bleed hands the canvas the screen. */
+@media (max-width: 620px), (max-height: 540px) {
   .bus-ride { padding: 0; }
   .bus-ride__cab { width: 100%; height: 100%; border: 0; border-radius: 0; box-shadow: none; }
-  .bus-ride__screen { flex: 1 1 auto; display: grid; place-items: center; }
-  .bus-ride__canvas { width: auto; min-width: 100%; max-width: none; max-height: none; height: 100%; object-fit: cover; }
+  .bus-ride__screen { flex: 1 1 auto; min-height: 0; display: block; }
+  /* `cover` cropped the sides on a phone, and the bus lives 18% in from the
+     left, so the thing you are steering was off-screen. The element now fills
+     the screen box and `contain` letterboxes the 960x540 inside it, which
+     fits the whole road whichever way the phone is held. */
+  .bus-ride__canvas {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
+  }
   .bus-ride__hud > span:first-child { display: none; }
   .bus-ride__deck p { display: none; }
   .bus-ride__lane { flex: 1 1 0; min-width: 0; }
-  .bus-ride__overlay { padding: 14px; }
+  /* The card has to live inside the road, and in landscape the road is 243px
+     tall. It loses the keyboard hint and most of its padding, and scrolls if
+     it still does not fit, rather than being clipped by the screen. */
+  .bus-ride__overlay { padding: 10px; overflow-y: auto; align-content: center; }
+  .bus-ride__card { padding: 14px 18px; }
+  .bus-ride__card h1 { font-size: clamp(20px, 5vw, 30px); margin-bottom: 6px; }
+  .bus-ride__card p { margin-bottom: 9px; font-size: 13.5px; line-height: 1.4; }
+  .bus-ride__eyebrow { margin-bottom: 5px; }
+  .bus-ride__actions { margin-top: 4px; }
+}
+
+/* In landscape there is no room for the keyboard line, and it is the least
+   useful thing on the card for somebody holding a phone. */
+@media (max-height: 540px) {
+  .bus-ride__keys { display: none; }
+
+  /* A deck row costs 60 of the 390 pixels a phone has in landscape, and the
+     road was being pillarboxed to pay for it. The lane buttons float over the
+     bottom of the road instead, the way the town's controls do, and the
+     canvas gets the height back. */
+  .bus-ride__cab { position: relative; }
+  .bus-ride__deck {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    padding: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 0;
+    background: none;
+    pointer-events: none;
+  }
+  .bus-ride__deck .bus-ride__lane {
+    pointer-events: auto;
+    flex: 0 0 auto;
+    min-width: 104px;
+    min-height: 46px;
+    background: rgba(253, 250, 242, 0.92);
+  }
+  .bus-ride__bar { padding: 5px 10px; }
+  .bus-ride__hud { padding: 3px 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bus-ride { backdrop-filter: none; }
   .bus-ride__meter i { transition: none; }
   .bus-ride.is-crashed .bus-ride__screen { animation: none; }
+  .bus-ride__lane { transition: none; }
+  .field-trip-stop.is-leaving { transition: none; }
+}
+
+/* The meadow's own bus pulling away, so the ride does not open on a cut.
+   The stop keeps the bus; only the vehicle leaves. */
+.field-trip-stop.is-leaving { transition: transform 620ms cubic-bezier(0.5, 0, 0.85, 0.35); }
+.field-trip-stop.is-leaving .field-trip-stop__bubble { opacity: 0; }
+.meadow-departing { animation: meadow-depart 620ms ease-in forwards; }
+
+@keyframes meadow-depart {
+  from { opacity: 1; }
+  70% { opacity: 1; }
+  to { opacity: 0.15; }
 }
 
 /* --- lost: a wrong address, or a profile that would not open -------------
@@ -860,6 +943,8 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
 /* nothing hovers on a phone, so the arrow just stays, quietly */
 @media (pointer: coarse) {
   .lost__go { opacity: 0.45; transform: none; }
+  /* this control is in the corner of every mode; it was 15px tall */
+  .switch-profile { min-height: 40px; padding: 6px 12px 6px 8px; }
 }
 
 .lost__foot {
@@ -2028,6 +2113,25 @@ html.dark .lens__option input:focus-visible + span { outline-color: var(--accent
   .win-body { padding-top: 22px; padding-bottom: 26px; }
   .profile-peek { top: auto; bottom: calc(100% - 28px); width: 132px; height: 132px; }
   .peek-message { top: -24px; left: 130px; }
+}
+
+/* A phone in landscape is about 375px tall. The desk was still asking for
+   292 of them, which put its lower half exactly where the bus parks: the
+   window covered the bus, and tapping the bus hit the window instead. The
+   desk gives up the tagline and some padding so the meadow keeps a band at
+   the bottom wide enough to board from. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .desktop-window { transform: translate(-50%, calc(-50% - 16px)); }
+  .win-body { padding: 14px 16px 16px; }
+  .hi-title { font-size: clamp(26px, 3.6vw, 34px); margin-bottom: 4px; }
+  .tagline { display: none; }
+  .icon-row { padding-top: 10px; gap: 6px clamp(10px, 2.4vw, 26px); }
+  .icon-circle { width: clamp(48px, 5.6vw, 62px); height: clamp(48px, 5.6vw, 62px); }
+  .icon-btn { font-size: 11.5px; gap: 5px; }
+  .profile-peek { bottom: calc(100% - 22px); width: 96px; height: 96px; }
+  .profile-peek.is-hiding { transform: translateY(96px); }
+  .peek-message { top: -18px; left: 96px; }
+  .field-trip-stop { bottom: 8px; }
 }
 
 /* 8 ------------------------------------------------------ reduced motion */

@@ -81,11 +81,11 @@ window.CatCourier = (function () {
   const BEST_KEY = 'fieldtrip.arcade.v1';
 
   const RESULT_LINES = [
-    'the cat has seen worse.',
-    'the neighbourhood is fed.',
-    'several doors were the right door.',
-    'nobody filed a complaint.',
-    'that is a lot of walking for one evening.'
+    'Warm-up round. Check the colour and the symbol before you head for a door.',
+    'A few parcels out. Two deliveries in a row bumps your combo, up to ×5.',
+    'Nice run. A wrong door drops your combo back to ×1, so it pays to double-check.',
+    'Most of the street got their parcels tonight.',
+    'That’s a lot of walking for one evening. Great run.'
   ];
 
   /* 2 ------------------------------------------------- state and the round */

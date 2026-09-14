@@ -130,6 +130,12 @@ window.FieldTrip = (function () {
     return hit ? { w: hit.f[2], h: hit.f[3] } : { w: TILE, h: TILE };
   };
 
+  /* The per-tile collision mask the build script reads off each sprite's own
+     alpha. A frame is a rectangle; a building is not, and marking the whole
+     rectangle solid is what puts an invisible wall beside a sloped roof. */
+  const solidMask = (name) =>
+    (A.town.solid && A.town.solid[name]) || (A.rooms.solid && A.rooms.solid[name]) || null;
+
   /* 2 ---------------------------------------------------------------- scenes */
   /* A scene is { kind, id, cols, rows, ground[], solid, drawables[], hotspots[],
      npcs[], exit } and the rest of the engine only ever talks to this shape. */
@@ -169,6 +175,20 @@ window.FieldTrip = (function () {
     }
   }
 
+  /* Stamp a sprite's mask into the grid. `fromRow` skips the upper rows, which
+     is what reads as "you can walk behind the top of it" indoors. */
+  function stampMask(sc, sprite, tx, ty, fromRow) {
+    const grid = solidMask(sprite);
+    if (!grid) return false;
+    for (let my = fromRow || 0; my < grid.length; my += 1) {
+      const row = grid[my];
+      for (let mx = 0; mx < row.length; mx += 1) {
+        if (row[mx] === '1') mark(sc, tx + mx, ty + my, 1, 1);
+      }
+    }
+    return true;
+  }
+
   /* Collision defaults to the bottom of a sprite's footprint, which is what
      reads as "you can walk behind the top of it". */
   function footprint(sc, sprite, at, override, pass) {
@@ -177,8 +197,12 @@ window.FieldTrip = (function () {
     const size = spriteSize(sprite);
     const w = Math.max(1, Math.round(size.w / TILE));
     const h = Math.max(1, Math.round(size.h / TILE));
+    const tx = Math.floor(at[0]);
+    const ty = Math.floor(at[1]);
+    /* only the lower half of a piece of furniture blocks you */
+    if (stampMask(sc, sprite, tx, ty, Math.floor(h * 0.45))) return;
     const top = at[1] + h * 0.45;
-    mark(sc, Math.floor(at[0]), Math.floor(top), w, Math.max(1, Math.ceil(at[1] + h - top)));
+    mark(sc, tx, Math.floor(top), w, Math.max(1, Math.ceil(at[1] + h - top)));
   }
 
   function push(sc, sprite, px, py, extra) {
@@ -219,7 +243,11 @@ window.FieldTrip = (function () {
       const px = Math.round(b.at[0] * TILE);
       const py = Math.round(b.at[1] * TILE);
       push(sc, b.sprite, px, py);
-      mark(sc, Math.floor(b.at[0]), Math.floor(b.at[1]), Math.ceil(size.w / TILE), Math.ceil(size.h / TILE));
+      /* the silhouette, not the frame: a sloped roof is air and you can walk
+         under the eaves and through the gap between the cinema's two reels */
+      if (!stampMask(sc, b.sprite, Math.floor(b.at[0]), Math.floor(b.at[1]), 0)) {
+        mark(sc, Math.floor(b.at[0]), Math.floor(b.at[1]), Math.ceil(size.w / TILE), Math.ceil(size.h / TILE));
+      }
       if (!b.door) return;
       sc.solid[b.door[1] * sc.cols + b.door[0]] = 0;
       sc.hotspots.push({
@@ -243,6 +271,7 @@ window.FieldTrip = (function () {
         anim: p.anim, float: p.float, slow: p.slow, flat: p.flat
       });
       if (p.solid) mark(sc, p.solid[0], p.solid[1], p.solid[2], p.solid[3]);
+      else if (p.blocks) footprint(sc, p.sprite, p.at);
     });
 
     W.square.forEach((s) => {
@@ -261,14 +290,15 @@ window.FieldTrip = (function () {
     });
 
     W.npcs.forEach((npc) => {
-      sc.npcs.push({ id: npc.id, at: npc.at, dir: npc.dir, room: 'square' });
-      sc.hotspots.push({
+      const spot = {
         kind: 'npc',
         room: 'square',
         id: npc.id,
         cx: npc.at[0] * TILE,
         cy: npc.at[1] * TILE + 10
-      });
+      };
+      sc.hotspots.push(spot);
+      sc.npcs.push(beat(npc, 'square', spot, 2.6));
     });
 
     if (allDone()) {
@@ -327,8 +357,9 @@ window.FieldTrip = (function () {
     });
 
     (spec.npcs || []).forEach((npc) => {
-      sc.npcs.push({ id: npc.id, at: npc.at, dir: npc.dir, room: id });
-      sc.hotspots.push({ kind: 'npc', room: id, id: npc.id, cx: npc.at[0] * TILE, cy: npc.at[1] * TILE + 10 });
+      const spot = { kind: 'npc', room: id, id: npc.id, cx: npc.at[0] * TILE, cy: npc.at[1] * TILE + 10 };
+      sc.hotspots.push(spot);
+      sc.npcs.push(beat(npc, id, spot, 1.2));
     });
 
     /* the doormat, so the way out is obvious */
@@ -349,6 +380,104 @@ window.FieldTrip = (function () {
     if (tx < 0 || ty < 0 || tx >= scene.cols || ty >= scene.rows) return true;
     return scene.solid[ty * scene.cols + tx] === 1;
   };
+
+  /* --- townsfolk ---------------------------------------------------------
+     Everyone keeps to a short beat around the spot they were placed on: a few
+     seconds standing, then a walk to somewhere else inside their own patch and
+     a stand there. Nobody leaves their patch, so whoever you were talking to
+     is still roughly where you left them, and the square stops reading as a
+     row of waxworks. Their hotspot travels with them. */
+
+  const NPC_SPEED = 26;
+  const NPC_FRAME_MS = 150;
+
+  function beat(npc, room, spot, range) {
+    const x = npc.at[0] * TILE;
+    const y = npc.at[1] * TILE;
+    return {
+      id: npc.id, room, spot, range, dir: npc.dir,
+      frame: 0, frameT: 0,
+      x, y, hx: x, hy: y, tx: x, ty: y,
+      wait: 600 + Math.random() * 3200
+    };
+  }
+
+  function rest(n) {
+    n.wait = 900 + Math.random() * 3400;
+    n.frame = 0;
+    n.frameT = 0;
+  }
+
+  /* somewhere else inside this person's own patch, never inside a wall */
+  function aim(n) {
+    for (let i = 0; i < 8; i += 1) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * n.range * TILE;
+      const tx = n.hx + Math.cos(a) * r;
+      const ty = n.hy + Math.sin(a) * r;
+      if (!blocked(tx - 4, ty) && !blocked(tx + 4, ty) && !blocked(tx, ty - 3)) {
+        n.tx = tx;
+        n.ty = ty;
+        return;
+      }
+    }
+    n.tx = n.hx;                 /* boxed in: go back to the middle instead */
+    n.ty = n.hy;
+  }
+
+  function updateNpcs(dt) {
+    if (!scene || !scene.npcs || reduceMotion.matches) return;
+    scene.npcs.forEach((n) => {
+      if (n.wait > 0) {
+        n.wait -= dt * 1000;
+        n.frame = 0;
+        n.frameT = 0;
+        if (n.wait <= 0) aim(n);
+        return;
+      }
+
+      let dx = n.tx - n.x;
+      let dy = n.ty - n.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 1.5) { rest(n); return; }
+      dx /= d;
+      dy /= d;
+
+      /* stand aside rather than walk through whoever is already there */
+      const ax = n.x + dx * 5;
+      const ay = n.y + dy * 5;
+      if (Math.hypot(player.x - ax, player.y - ay) < 13
+        || scene.npcs.some((o) => o !== n && Math.hypot(o.x - ax, o.y - ay) < 13)) {
+        rest(n);
+        return;
+      }
+
+      if (Math.abs(dx) >= Math.abs(dy)) n.dir = dx > 0 ? 'right' : 'left';
+      else n.dir = dy > 0 ? 'down' : 'up';
+
+      const step = NPC_SPEED * dt;
+      const nx = n.x + dx * step;
+      const ny = n.y + dy * step;
+      const wasX = n.x;
+      const wasY = n.y;
+      if (!blocked(nx - 4, n.y - 3) && !blocked(nx + 4, n.y - 3)
+        && !blocked(nx - 4, n.y) && !blocked(nx + 4, n.y)) n.x = nx;
+      if (!blocked(n.x - 4, ny - 3) && !blocked(n.x + 4, ny - 3)
+        && !blocked(n.x - 4, ny) && !blocked(n.x + 4, ny)) n.y = ny;
+      /* Progress, not "one of the two axis tests passed". Pressed into a
+         corner the free axis still passes while the step it allows is about
+         nothing, and they walk on the spot for the rest of the afternoon. */
+      if (Math.hypot(n.x - wasX, n.y - wasY) < step * 0.4) { rest(n); return; }
+
+      n.frameT += dt * 1000;
+      if (n.frameT >= NPC_FRAME_MS) {
+        n.frameT = 0;
+        n.frame = (n.frame + 1) % A.walkFrames;
+      }
+      n.spot.cx = n.x;
+      n.spot.cy = n.y + 10;
+    });
+  }
 
   /* 3 ---------------------------------------------------------------- input */
 
@@ -464,7 +593,7 @@ window.FieldTrip = (function () {
     viewW = Math.ceil(cssW / scale);
     viewH = Math.ceil(cssH / scale);
     if (scene) updateCamera();
-    if (window.CatCourier && window.CatCourier.resize) window.CatCourier.resize();
+    arcadeResize();
   }
 
   function drawSprite(name, px, py) {
@@ -622,10 +751,11 @@ window.FieldTrip = (function () {
       list.push({ base: s.flat ? -1 : s.base, draw: () => drawSprite(name, s.px, py) });
     });
     scene.npcs.forEach((npc) => {
-      const px = Math.round(npc.at[0] * TILE) - 16;
-      const py = Math.round(npc.at[1] * TILE) - 30;
+      const px = Math.round(npc.x) - 16;
+      const py = Math.round(npc.y) - 30;
       const row = A.dirRows[npc.dir] || 0;
-      list.push({ base: npc.at[1] * TILE + 2, draw: () => drawCharacter(npc.id, row, 0, px, py) });
+      const frame = npc.frame;
+      list.push({ base: npc.y + 2, draw: () => drawCharacter(npc.id, row, frame, px, py) });
     });
     const ppx = Math.round(player.x) - 16;
     const ppy = Math.round(player.y) - 30;
@@ -666,9 +796,13 @@ window.FieldTrip = (function () {
 
   /* --- the live prompt --------------------------------------------------- */
 
-  /* On a phone there is no E key, so the prompt names the button that is
-     actually on screen. */
-  const act = () => (coarse.matches || window.innerWidth <= 760 ? 'tap look' : 'press E');
+  /* The prompt names the button that is actually on screen, and it asks the
+     screen rather than re-deriving it: the copy and the controls cannot end
+     up disagreeing about which device this is. */
+  const act = () => {
+    const pad = document.getElementById('ftTouch');
+    return pad && !pad.hidden ? 'tap look' : 'press E';
+  };
 
   function hotspotName(h) {
     if (!h) return '';
@@ -684,7 +818,12 @@ window.FieldTrip = (function () {
     }
     const room = C.town.rooms[h.room];
     const obj = room && room.objects[h.id];
-    return `${obj ? obj.name : h.id} · ${act()} to look`;
+    /* the verb should match what pressing it actually does */
+    const verb = obj && obj.action === 'ride' ? 'to get on'
+      : obj && obj.action === 'arcade' ? 'to play'
+        : obj && obj.action === 'map' ? 'to read'
+          : 'to look';
+    return `${obj ? obj.name : h.id} · ${act()} ${verb}`;
   }
 
   let lastPromptKey = '';
@@ -727,7 +866,7 @@ window.FieldTrip = (function () {
 
   const hintText = () =>
     coarse.matches || window.innerWidth <= 760
-      ? 'the pad walks · look reads whatever you are standing beside · map and menu are in the bar'
+      ? 'drag anywhere or use the pad to walk · tap look beside something to read it · map and menu are up top'
       : 'wasd or arrows to walk · e to look · m for the map · esc for the menu';
 
   function showHint(ms) {
@@ -749,6 +888,18 @@ window.FieldTrip = (function () {
     el.classList.remove('is-on');
     if (reduceMotion.matches) { el.hidden = true; return; }
     hintTimer = setTimeout(() => { el.hidden = true; }, 250);
+  }
+
+  /* Whether the controls are up, re-checked on every resize so rotating the
+     phone cannot leave the layout set up for the other orientation. The class
+     is what the stylesheet uses to keep the prompt clear of the pad. */
+  function syncTouch() {
+    const app = document.getElementById('gameApp');
+    const pad = document.getElementById('ftTouch');
+    if (!app || !pad) return;
+    const wants = coarse.matches || window.innerWidth <= 760;
+    pad.hidden = !wants;
+    app.classList.toggle('is-touch', wants);
   }
 
   function setWhere(text) {
@@ -830,12 +981,9 @@ window.FieldTrip = (function () {
     if (!obj) return;
 
     if (obj.action === 'map') { openSheet('map directory', P.mapHtml(uiState())); return; }
-    if (obj.action === 'arcade') { launchArcade(); return; }
-    if (obj.action === 'highscore') {
-      const best = store.get('fieldtrip.arcade.v1', 0) || 0;
-      say(obj.name, [best ? `best courier run so far: ${best} points.` : 'nobody has posted a score yet. the machine is waiting.']);
-      return;
-    }
+    if (obj.action === 'arcade') { launchArcade(obj.game); return; }
+    if (obj.action === 'ride') { rideHome(); return; }
+    if (obj.action === 'highscore') { readBoard(obj.name); return; }
 
     save.inspected[roomId + ':' + objId] = true;
     if (roomId !== 'square') complete('inspect');
@@ -888,21 +1036,53 @@ window.FieldTrip = (function () {
     inspect(near.room, near.id, near.sprite);
   }
 
-  /* --- the arcade cabinet ------------------------------------------------- */
+  /* --- the arcade cabinets -------------------------------------------------
+     Three machines on the wall, three different games, one shell. Each is its
+     own file loaded the first time somebody walks up to it, and only one can
+     be running: `playing` is who to resize and who to shut down. */
+
+  const CABINETS = {
+    courier: { src: 'js/field-trip/arcade.js', at: () => window.CatCourier, title: 'CAT COURIER' },
+    beat: { src: 'js/field-trip/arcade-extra.js', at: () => window.ArcadeExtra && window.ArcadeExtra.beat, title: 'BEAT STREET' },
+    claw: { src: 'js/field-trip/arcade-extra.js', at: () => window.ArcadeExtra && window.ArcadeExtra.claw, title: 'GRABBER' }
+  };
+
+  /* The board over the machines. Reachable two ways — walking up to it, and
+     the room list in the map directory — so it lives in one place. */
+  function readBoard(name) {
+    const board = [
+      ['CAT COURIER', store.get('fieldtrip.arcade.v1', 0) || 0],
+      ['BEAT STREET', store.get('fieldtrip.arcade.beat.v1', 0) || 0],
+      ['GRABBER', store.get('fieldtrip.arcade.claw.v1', 0) || 0]
+    ];
+    const posted = board.filter((r) => r[1] > 0);
+    say(name, posted.length
+      ? posted.map((r) => `${r[0]} · ${r[1]}`)
+      : ['No scores yet on any of the three machines.']);
+  }
 
   let arcadeLoading = false;
+  let playing = null;
 
-  function launchArcade() {
+  function arcadeResize() {
+    if (playing && playing.resize) playing.resize();
+  }
+
+  function launchArcade(which) {
     if (arcadeLoading) return;
+    const cab = CABINETS[which] || CABINETS.courier;
     const host = document.getElementById('ftArcade');
     const start = () => {
+      const game = cab.at();
+      if (!game) return;
+      playing = game;
       setPaused(true, true);
       /* Start only after the cabinet is visible. Starting while `hidden`
          makes its screen measure 0 × 0, locking the game to the 320 × 220
          fallback until the browser is resized. */
       fade(() => {
         host.hidden = false;
-        window.CatCourier.start(host, {
+        game.start(host, {
           images: images,
           atlas: A,
           reduceMotion: reduceMotion.matches,
@@ -910,6 +1090,7 @@ window.FieldTrip = (function () {
           sound: () => store.get(KEYS.sound, false) === true,
           onScore: () => { complete('arcade-round'); },
           onExit: () => {
+            playing = null;
             fade(() => {
               host.hidden = true;
               host.innerHTML = '';
@@ -921,14 +1102,47 @@ window.FieldTrip = (function () {
         });
       });
     };
-    if (window.CatCourier) { start(); return; }
+    if (cab.at()) { start(); return; }
     arcadeLoading = true;
     const el = document.createElement('script');
-    el.src = 'js/field-trip/arcade.js?v=20260809-ride2';
-    el.addEventListener('load', () => { arcadeLoading = false; if (window.CatCourier) start(); });
+    el.src = assetUrl(cab.src);
+    el.addEventListener('load', () => { arcadeLoading = false; if (cab.at()) start(); });
     el.addEventListener('error', () => {
       arcadeLoading = false;
-      say('CAT COURIER', ['the cabinet started warming up and never finished. give it a moment and try again.']);
+      say(cab.title, ['This cabinet didn’t load. Give it a second and try again.']);
+    });
+    document.head.appendChild(el);
+  }
+
+  /* --- the bus home --------------------------------------------------------
+     The same ride that brought you here, run the other way. It is the reason
+     there is a bus parked at the bottom of the village at all: a vehicle that
+     only ever goes one way is scenery. The menu keeps a plain link as well,
+     because somebody who wants out should not have to play anything. */
+
+  let rideLoading = false;
+
+  function rideHome() {
+    if (rideLoading) return;
+    const launch = () => {
+      setPaused(true, true);
+      persist();
+      window.BusRide.start({
+        direction: 'meadow',
+        reduceMotion: reduceMotion.matches,
+        sound: store.get(KEYS.sound, false) === true,
+        onArrive: () => window.Modes.go('meadow'),
+        onCancel: () => setPaused(false)
+      });
+    };
+    if (window.BusRide && window.BusRide.start) { launch(); return; }
+    rideLoading = true;
+    const el = document.createElement('script');
+    el.src = assetUrl('js/bus-ride.js');
+    el.addEventListener('load', () => { rideLoading = false; if (window.BusRide) launch(); });
+    el.addEventListener('error', () => {
+      rideLoading = false;
+      say('the bus', ['The bus won’t start. You can still get back to the desktop from the menu.']);
     });
     document.head.appendChild(el);
   }
@@ -999,7 +1213,7 @@ window.FieldTrip = (function () {
       night = true;
       store.set(KEYS.time, 0.85);
       if (scene && scene.kind === 'town') scene = buildTown();
-      toast('the street lights came on early, and a cat turned up on the green');
+      toast('All done! The street lights are on, and a cat has turned up on the green.');
     } else {
       toast(`done: ${quest.label}`);
     }
@@ -1018,7 +1232,7 @@ window.FieldTrip = (function () {
     player.dir = W.spawn.dir;
     setWhere('field-trip.exe');
     updateCamera();
-    toast('reset. the village is unvisited again.');
+    toast('Reset. The village is back to how you found it.');
   }
 
   /* --- tiny sounds, off until asked --- */
@@ -1070,6 +1284,7 @@ window.FieldTrip = (function () {
     if (paused || document.hidden) return;
     clock += dt * 1000;
     updatePlayer(dt);
+    updateNpcs(dt);
     updateCamera();
     refreshPrompt();
     if (player.moving) persist();
@@ -1125,7 +1340,10 @@ window.FieldTrip = (function () {
           openSheet(obj.name, panel.html, { object: true });
         } else if (obj.action === 'arcade') {
           closeSheet();
-          launchArcade();
+          launchArcade(obj.game);
+        } else if (obj.action === 'highscore') {
+          closeSheet();
+          readBoard(obj.name);
         } else if (obj.lines) {
           openSheet(obj.name, `<p>${obj.lines.map((l) => esc(l)).join('</p><p>')}</p>`, { object: true });
         }
@@ -1151,7 +1369,8 @@ window.FieldTrip = (function () {
         night = !night;
         store.set(KEYS.time, night ? 0.85 : 0);
         openSheet('menu', P.menuHtml(uiState()));
-      } else if (act === 'switch') { closeSheet(); window.Modes.toChooser(); }
+      } else if (act === 'ride') { closeSheet(); rideHome(); }
+      else if (act === 'switch') { closeSheet(); window.Modes.toChooser(); }
       else if (act === 'reset') { resetGame(); openSheet('menu', P.menuHtml(uiState())); }
     });
 
@@ -1164,7 +1383,8 @@ window.FieldTrip = (function () {
 
     on(window, 'keydown', (e) => {
       if (sheet && sheet.open) return;
-      if (window.CatCourier && window.CatCourier.isRunning && window.CatCourier.isRunning()) return;
+      if (document.querySelector('.bus-ride')) return;
+      if (playing && playing.isRunning && playing.isRunning()) return;   /* whichever cabinet is up */
       const t = e.target;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
       const dir = KEYMAP[e.key];
@@ -1185,7 +1405,8 @@ window.FieldTrip = (function () {
     });
 
     on(window, 'blur', () => Object.keys(held).forEach((k) => (held[k] = false)));
-    on(window, 'resize', () => { resize(); wake(); });
+    on(window, 'resize', () => { syncTouch(); resize(); wake(); });
+    on(window, 'orientationchange', () => { syncTouch(); resize(); wake(); });
     on(document, 'visibilitychange', () => { if (!document.hidden) wake(); });
 
     const touch = document.getElementById('ftTouch');
@@ -1206,11 +1427,55 @@ window.FieldTrip = (function () {
       on(touch, 'contextmenu', (e) => e.preventDefault());
     }
 
-    on(canvas, 'pointerdown', () => {
+    /* Drag anywhere on the town to walk. The d-pad stays, because a visible
+       control is discoverable and reachable by keyboard, but on a phone a
+       thumb should not have to find a 44px square first: press, drag, and
+       you go where you dragged. The origin trails your finger, so a long
+       drag keeps steering instead of pinning you to one direction. A press
+       that never moves is still a tap, so looking at things is unchanged. */
+    let steer = null;
+    const STICK = 30;
+    const DEAD = 12;
+
+    const clearHeld = () => Object.keys(held).forEach((k) => (held[k] = false));
+
+    on(canvas, 'pointerdown', (e) => {
       const box = document.getElementById('ftSay');
       if (box && !box.hidden) { if (!nextSay()) box.hidden = true; return; }
-      if (near) interact();
+      steer = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* mouse on an old engine */ }
     });
+
+    on(canvas, 'pointermove', (e) => {
+      if (!steer || e.pointerId !== steer.id) return;
+      let dx = e.clientX - steer.x;
+      let dy = e.clientY - steer.y;
+      const dist = Math.hypot(dx, dy);
+      if (!steer.moved && dist < DEAD) return;
+      steer.moved = true;
+      if (dist > STICK) {
+        steer.x = e.clientX - (dx / dist) * STICK;
+        steer.y = e.clientY - (dy / dist) * STICK;
+        dx = e.clientX - steer.x;
+        dy = e.clientY - steer.y;
+      }
+      held.right = dx > DEAD;
+      held.left = dx < -DEAD;
+      held.down = dy > DEAD;
+      held.up = dy < -DEAD;
+      wake();
+    });
+
+    const endSteer = (e) => {
+      if (!steer || (e && e.pointerId !== steer.id)) return;
+      const tapped = !steer.moved;
+      steer = null;
+      clearHeld();
+      if (tapped && near) interact();
+    };
+    on(canvas, 'pointerup', endSteer);
+    on(canvas, 'pointercancel', endSteer);
+    on(canvas, 'lostpointercapture', () => { if (steer) { steer = null; clearHeld(); } });
   }
 
   function spriteFor(roomId, objId) {
@@ -1245,7 +1510,7 @@ window.FieldTrip = (function () {
     loadSave();
     wire();
     resize();
-    if (coarse.matches || window.innerWidth <= 760) document.getElementById('ftTouch').hidden = false;
+    syncTouch();
     if (opts && opts.focus) document.getElementById('gameApp').focus({ preventScroll: true });
 
     if (!A || !W || !R || !P) { leaveBrokenVillage('the town data is missing'); return; }

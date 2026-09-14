@@ -84,7 +84,6 @@ window.Brief = (function () {
       C.profile.location
     )}</p>
           <p class="hero__lede">${esc(C.brief.lede)}</p>
-          <p class="hero__open"><i aria-hidden="true"></i>${esc(C.profile.status)}</p>
           <p class="hero__do">
             <a class="cta" href="${esc(C.links.email)}">email me</a>
             <span class="hero__also">
@@ -307,7 +306,6 @@ window.Brief = (function () {
                 ${quiet('LinkedIn', C.links.linkedin)}
               </span>
             </p>
-            <p class="end__status">${esc(C.contact.status)}</p>
           </div>
           <div class="end__stamp" aria-hidden="true">
             ${WHOOSH}
@@ -349,7 +347,7 @@ window.Brief = (function () {
 
       <footer class="foot">
         <div class="wrap foot__in">
-          <p>same facts, two other ways in. one of them has a cat.</p>
+          <p>This is the short version. There’s also a desktop with a cat on it, and a pixel town you can walk around.</p>
           <p class="foot__modes">
             <a href="?mode=meadow">meadow desktop</a>
             <a href="?mode=field-trip">field trip</a>

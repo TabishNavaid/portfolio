@@ -108,9 +108,12 @@ TOWN_PIECES = [
     ("crate", "town", TILES, (432, 449, 32, 31), True),
     ("fence", "town", TILES, (2, 752, 78, 48), True),
     ("fence-post", "town", TILES, (227, 752, 6, 41), True),
-    ("bus", "town", TILES, (129, 812, 80, 52), True),
+    # The bus is x128..205, y816..863. The old cut started four rows high,
+    # which dragged in the bench above it, and ran three columns long, which
+    # picked up the seam and the nose of the next bus as a blue strip.
+    ("bus", "town", TILES, (128, 816, 78, 48), True),
     ("shelter", "town", TILES, (0, 806, 48, 60), True),
-    ("bus-sign", "town", TILES, (48, 806, 14, 60), True),
+    ("bus-sign", "town", TILES, (48, 806, 16, 60), True),
     # buildings, first (summer) variant of each
     ("b-blacksmith", "town", BUILDINGS, (3, 759, 88, 89), True),
     ("b-trailer", "town", BUILDINGS, (4, 1154, 88, 62), True),
@@ -120,7 +123,10 @@ TOWN_PIECES = [
     ("b-library", "town", BUILDINGS, (6, 651, 149, 101), True),
     ("b-post", "town", BUILDINGS, (5, 292, 85, 92), True),
     ("b-pub", "town", BUILDINGS, (9, 3, 82, 77), True),
-    ("b-cinema", "town", BUILDINGS, (0, 860, 160, 84), True),
+    # Three cinema variants sit side by side on a 96px pitch with no gap
+    # between them; the roofs only touch at the seam columns (95, 191).
+    # 160 sliced one and a half buildings, 191 took two whole ones.
+    ("b-cinema", "town", BUILDINGS, (0, 860, 96, 84), True),
     ("b-school", "town", BUILDINGS, (1, 184, 190, 104), True),
     ("b-house", "town", BUILDINGS, (2, 1074, 92, 78), True),
     # greenery, same artist, already used elsewhere on the site
@@ -154,9 +160,10 @@ TOWN_PIECES = [
     ("water-inw", "town", TILES, (304, 32, 16, 16), False),
     ("water-ise", "town", TILES, (288, 16, 16, 16), False),
     ("water-isw", "town", TILES, (304, 16, 16, 16), False),
-    # the one crossing, so the stream separates districts instead of ending
-    # the map. Only the east-west deck is cut: nothing crosses north-south.
+    # two crossings: an east-west deck for a north-south stream, and a
+    # north-south deck for the brook that feeds the river
     ("bridge-h", "town", TILES, (0, 702, 80, 49), True),
+    ("bridge-v", "town", TILES, (1, 627, 46, 77), True),
     # boundaries that are not forest: yards, allotments, the school field
     ("rail-fence", "town", TILES, (4, 430, 36, 18), True),
     ("rail-tall", "town", TILES, (2, 398, 38, 50), True),
@@ -322,6 +329,39 @@ def recolour_shirt(img, mapping):
 # packing
 # --------------------------------------------------------------------------
 
+def footprints(pieces, threshold=0.30):
+    """Per-tile collision masks, read off each sprite's own alpha.
+
+    A building's frame is a rectangle; a building is not. The community
+    centre's frame is 37% air, and marking that whole rectangle solid puts an
+    invisible wall across the gap beside its conservatory. So every sprite
+    carries a grid of 16px cells instead, and a cell is solid only when the
+    art actually covers `threshold` of it. Roof corners, the notch between the
+    cinema's two reels and the sloped eaves all become walkable, which is what
+    they look like.
+    """
+    out = {}
+    for name, img in pieces:
+        w, h = img.size
+        if w <= 16 and h <= 16:
+            continue
+        alpha = img.split()[3]
+        cols = -(-w // 16)
+        rows = -(-h // 16)
+        grid = []
+        for ty in range(rows):
+            line = ""
+            for tx in range(cols):
+                box = alpha.crop((tx * 16, ty * 16, min(tx * 16 + 16, w), min(ty * 16 + 16, h)))
+                cells = box.size[0] * box.size[1]
+                covered = sum(1 for v in box.getdata() if v > 8)
+                line += "1" if cells and covered / cells >= threshold else "0"
+            grid.append(line)
+        if any("1" in row for row in grid):
+            out[name] = grid
+    return out
+
+
 def pack(pieces, width, pad=1):
     """Shelf packer. Returns (image, {name: [x, y, w, h]})."""
     pieces = sorted(pieces, key=lambda p: -p[1].size[1])
@@ -356,6 +396,7 @@ def main():
             img = tighten(img)
         town.append((name, img))
     town_img, town_frames = pack(town, 512)
+    town_solid = footprints(town)
 
     chars = []
     # the player: all eight walk frames for each of the four directions
@@ -366,10 +407,11 @@ def main():
         (120, 46, 42): (140, 63, 34),
     })
     chars.append(("tabish", walk))
-    # townsfolk stand still: one frame per direction is plenty
+    # Townsfolk walk a short beat around where they are placed, so they need
+    # the same eight frames per direction the player has.
     for who in ("npc-a", "npc-b", "npc-c"):
-        chars.append((who, compose(CAST[who], (0, 0, 32, 128))))
-    chars_img, char_frames = pack(chars, 320)
+        chars.append((who, compose(CAST[who], (0, 0, 256, 128))))
+    chars_img, char_frames = pack(chars, 512)
 
     room = []
     for name, pk, member, box, tight in ROOM_PIECES:
@@ -378,6 +420,7 @@ def main():
             img = tighten(img)
         room.append((name, img))
     room_img, room_frames = pack(room, 448)
+    room_solid = footprints(room)
 
     town_img.save(os.path.join(OUT_ASSETS, "town.png"), optimize=True)
     chars_img.save(os.path.join(OUT_ASSETS, "chars.png"), optimize=True)
@@ -391,11 +434,13 @@ def main():
 
     atlas = {
         "town": {"file": "assets/field-trip/town.png", "width": town_img.size[0],
-                 "height": town_img.size[1], "frames": town_frames},
+                 "height": town_img.size[1], "frames": town_frames,
+                 "solid": town_solid},
         "chars": {"file": "assets/field-trip/chars.png", "width": chars_img.size[0],
                   "height": chars_img.size[1], "frames": char_frames},
         "rooms": {"file": "assets/field-trip/rooms.png", "width": room_img.size[0],
-                  "height": room_img.size[1], "frames": room_frames},
+                  "height": room_img.size[1], "frames": room_frames,
+                  "solid": room_solid},
         "tile": 16,
         "charFrame": [32, 32],
         "walkFrames": 8,
@@ -407,7 +452,7 @@ def main():
         fh.write(json.dumps(atlas, indent=2, sort_keys=True))
         fh.write(";\n")
 
-    print("town.png ", town_img.size, len(town_frames), "frames")
+    print("town.png ", town_img.size, len(town_frames), "frames,", len(town_solid), "footprints")
     print("chars.png", chars_img.size, len(char_frames), "frames")
     print("rooms.png", room_img.size, len(room_frames), "frames")
 

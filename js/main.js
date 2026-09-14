@@ -524,7 +524,7 @@ window.MeadowDesktop = (function () {
       <p>${esc(a.languages)}</p>
       <p class="label">other interests</p>
       <ul>${a.interests.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>
-      <p>if you are building something useful and need a careful web person, send me an email at
+      <p>if you’re building something useful and need a careful web person, send me an email at
         <a href="${esc(C.links.email)}">${esc(C.links.emailPlain)}</a>.</p>`;
   }
 
@@ -612,8 +612,7 @@ window.MeadowDesktop = (function () {
           </div>
         </div>
       </div>
-      <p>Cards lead with a decision rather than a feature list. The switch changes which kind of decision
-        comes first.</p>
+      <p>Each card starts with a decision I made. Flip the switch to see engineering or product decisions first.</p>
       <div class="btn-row">
         ${actionLink({ label: 'Email me', href: C.links.email }, 'btn')}
         ${actionLink({ label: 'GitHub', href: C.links.github }, 'btn')}
@@ -659,7 +658,7 @@ window.MeadowDesktop = (function () {
       .join('');
 
     return `<h3>notes</h3>
-      <p class="sub">short answers, mostly the ones people ask twice.</p>
+      <p class="sub">quick answers, plus a look at how this site works.</p>
       <div class="accordion">${items}</div>`;
   }
 
@@ -668,8 +667,6 @@ window.MeadowDesktop = (function () {
         <h3>${esc(C.contact.heading)}</h3>
         <p>${esc(C.contact.body)}</p>
         <div class="btn-row">${actionLink({ label: 'send me an email!', href: C.links.email }, 'btn btn--primary')}</div>
-        <p class="label" style="text-align:center">status</p>
-        <p style="margin:0">${esc(C.contact.status)}</p>
       </div>`;
   }
 
@@ -984,6 +981,35 @@ window.MeadowDesktop = (function () {
     if (BUS.el) BUS.el.style.setProperty('--bus-x', `${Math.round(BUS.x)}px`);
   }
 
+  /* Boarding. The bus pulls away and the meadow dims before the ride opens,
+     so the trip starts in the meadow rather than in a modal that appeared.
+     `leaving` is a state busStep does nothing with, which parks the state
+     machine while the CSS transition owns the position. */
+  function busDepart(then) {
+    const meadow = document.getElementById('meadowRoot');
+    busEnter('leaving', performance.now());
+    if (!BUS.el || reduceMotion.matches) { then(); return; }
+    BUS.el.classList.add('is-leaving');
+    if (meadow) meadow.classList.add('meadow-departing');
+    BUS.x = window.innerWidth + 320;
+    busPlace();
+    setTimeout(() => {
+      then();
+      /* held one beat longer than the handover, so the meadow does not flash
+         back to full brightness underneath the ride's opening curtain */
+      setTimeout(() => { if (meadow) meadow.classList.remove('meadow-departing'); }, 420);
+    }, 600);
+  }
+
+  function busReturn() {
+    const meadow = document.getElementById('meadowRoot');
+    if (BUS.el) BUS.el.classList.remove('is-leaving');
+    if (meadow) meadow.classList.remove('meadow-departing');
+    BUS.x = BUS_OFF;
+    busEnter('arriving', performance.now());
+    busPlace();
+  }
+
   function busStep(now) {
     const dt = now - BUS.since;
     switch (BUS.state) {
@@ -1025,13 +1051,14 @@ window.MeadowDesktop = (function () {
       if (window.BusRide && window.BusRide.start) {
         bus.disabled = true;
         if (state.music) stopMusic('field trip boarding');
-        window.BusRide.start({
-          reduceMotion: reduceMotion.matches,
-          sound: state.sound,
-          onArrive: () => ready.finally(() => window.Modes.go('field-trip')),
-          onCancel: () => {
-            if (BUS.state === 'parked' || BUS.state === 'arriving') bus.disabled = false;
-          }
+        busDepart(() => {
+          window.BusRide.start({
+            direction: 'town',
+            reduceMotion: reduceMotion.matches,
+            sound: state.sound,
+            onArrive: () => ready.finally(() => window.Modes.go('field-trip')),
+            onCancel: () => { busReturn(); }
+          });
         });
       } else {
         ready.finally(() => window.Modes.go('field-trip'));

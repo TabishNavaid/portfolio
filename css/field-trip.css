@@ -192,28 +192,49 @@ html[data-mode='field-trip'] body {
 .ft-hint.is-on { opacity: 1; transform: translateY(0); }
 .ft-hint[hidden] { display: none; }
 
-/* --- touch controls --- */
+/* --- touch controls ------------------------------------------------------
+   Every key is derived from `--ft-key`, and the prompt and the dialogue box
+   are pushed clear of them by `--ft-pad`, so nothing has to be positioned
+   twice. A phone in landscape has a third of the height of the same phone
+   in portrait, so the sizes come from a breakpoint that reads height as
+   well as width; keying only off width is what left a 156px pad sitting in
+   a 329px stage. `--ft-key` never drops below 44px, which is the smallest
+   a control should be under a thumb. */
+
+.ft-stage {
+  --ft-key: clamp(44px, 12vmin, 56px);
+  --ft-gap: clamp(10px, 2.4vmin, 18px);
+  --ft-pad: 0px;
+}
 
 .ft-touch { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
 .ft-touch[hidden] { display: none; }
 .ft-touch button { pointer-events: auto; }
+/* While the controls are up, the prompt and the dialogue box sit above them.
+   `--ft-pad` is the room the d-pad claims, so the two can never be tuned
+   apart: change the key size and everything else follows. */
+.ft-app.is-touch .ft-stage {
+  --ft-pad: calc(var(--ft-key) * 3 + var(--ft-gap) + env(safe-area-inset-bottom, 0px));
+}
+.ft-app.is-touch .ft-prompt,
+.ft-app.is-touch .ft-say { bottom: calc(var(--ft-pad) + 10px); }
 
 .ft-dpad {
   position: absolute;
-  left: 14px;
-  bottom: 14px;
-  width: 156px;
-  height: 156px;
+  left: calc(var(--ft-gap) + env(safe-area-inset-left, 0px));
+  bottom: calc(var(--ft-gap) + env(safe-area-inset-bottom, 0px));
+  width: calc(var(--ft-key) * 3);
+  height: calc(var(--ft-key) * 3);
 }
 
 .ft-dpad__b {
   position: absolute;
-  width: 52px;
-  height: 52px;
+  width: var(--ft-key);
+  height: var(--ft-key);
   padding: 0;
   border: 2px solid #2d2c29;
   border-radius: 12px;
-  background: rgba(253, 250, 242, 0.9);
+  background: rgba(253, 250, 242, 0.82);
   color: #2d2c29;
   font-size: 15px;
   line-height: 1;
@@ -223,17 +244,17 @@ html[data-mode='field-trip'] body {
 }
 
 .ft-dpad__b:active { background: #f2d9c4; }
-.ft-dpad__up { left: 52px; top: 0; }
-.ft-dpad__left { left: 0; top: 52px; }
-.ft-dpad__right { left: 104px; top: 52px; }
-.ft-dpad__down { left: 52px; top: 104px; }
+.ft-dpad__up { left: var(--ft-key); top: 0; }
+.ft-dpad__left { left: 0; top: var(--ft-key); }
+.ft-dpad__right { left: calc(var(--ft-key) * 2); top: var(--ft-key); }
+.ft-dpad__down { left: var(--ft-key); top: calc(var(--ft-key) * 2); }
 
 .ft-action {
   position: absolute;
-  right: 16px;
-  bottom: 26px;
-  width: 78px;
-  height: 78px;
+  right: calc(var(--ft-gap) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--ft-gap) + env(safe-area-inset-bottom, 0px) + var(--ft-key) * 0.4);
+  width: calc(var(--ft-key) * 1.45);
+  height: calc(var(--ft-key) * 1.45);
   border: 2.5px solid #2d2c29;
   border-radius: 50%;
   background: #d96e34;
@@ -312,17 +333,6 @@ dialog.ft-sheet::backdrop { background: rgba(28, 34, 30, 0.42); }
 
 .ft-blurb { font-size: 14px; opacity: 0.78; }
 .ft-lede { font-size: 17px; }
-
-.ft-status {
-  display: inline-block;
-  padding: 5px 12px;
-  border: 1.5px dashed #c9b79b;
-  border-radius: var(--radius-pill);
-  background: #fbf4e8;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 700;
-}
 
 .ft-card {
   margin: 0 0 14px;
@@ -464,7 +474,29 @@ dialog.ft-sheet::backdrop { background: rgba(28, 34, 30, 0.42); }
   .ft-tool--return { padding: 5px 11px; font-size: 14px; line-height: 1; }
 }
 
-@media (max-width: 720px) {
+/* Under a thumb, map / quests / menu / return were 26px tall inside a 45px
+   bar. They are the controls people reach for most and they were the hardest
+   thing on the screen to hit. */
+@media (pointer: coarse), (max-width: 760px), (max-height: 540px) {
+  .ft-bar { padding: 6px 10px; }
+  .ft-tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 6px 13px;
+  }
+  .ft-tool--return { min-width: 44px; padding: 6px 12px; }
+}
+
+@media (pointer: coarse) and (min-height: 520px), (max-width: 760px) and (min-height: 520px) {
+  .ft-tool { min-height: 44px; }
+}
+
+/* A phone in landscape is 844 wide and 390 tall. Width-only breakpoints let
+   it keep the desktop frame and the desktop-sized pad, which is how a 156px
+   d-pad ended up in a 329px stage. Every rule below reads height too. */
+@media (max-width: 720px), (max-height: 540px) {
   .ft-app { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
   .ft-bar { font-size: 12px; padding: 8px 10px; gap: 6px 10px; }
   .ft-hint { right: 8px; top: 8px; font-size: 10px; line-height: 1.35; }
@@ -482,22 +514,18 @@ dialog.ft-sheet::backdrop { background: rgba(28, 34, 30, 0.42); }
   .ft-bar__title { display: none; }
 }
 
-@media (max-width: 420px) {
-  .ft-dpad { width: 132px; height: 132px; left: 10px; bottom: 10px; }
-  .ft-dpad__b { width: 44px; height: 44px; }
-  .ft-dpad__up { left: 44px; top: 0; }
-  .ft-dpad__left { left: 0; top: 44px; }
-  .ft-dpad__right { left: 88px; top: 44px; }
-  .ft-dpad__down { left: 44px; top: 88px; }
-  .ft-action { width: 66px; height: 66px; right: 12px; bottom: 20px; font-size: 12px; }
-  .ft-say { bottom: 104px; }
-  .ft-prompt { bottom: 104px; }
+/* Landscape on a phone: the keys stay at the 44px floor and the prompt moves
+   to the top, because the bottom of a 390px-tall screen is all controls. */
+@media (max-height: 540px) and (orientation: landscape) {
+  .ft-stage { --ft-key: 44px; --ft-gap: 8px; }
+  .ft-app.is-touch .ft-prompt { top: 8px; bottom: auto; }
+  .ft-app.is-touch .ft-say { bottom: 8px; left: calc(44px * 3 + 22px); right: calc(44px * 1.45 + 22px); transform: none; }
+  .ft-hint { max-width: 46vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ft-toast, .ft-hint { transition: none; }
 }
-
 
 /* --- moving between scenes ---------------------------------------------- */
 
@@ -776,10 +804,40 @@ dialog.ft-sheet--object { width: min(520px, calc(100vw - 32px)); }
 .cc-btn--big { padding: 9px 22px; font-size: 13px; letter-spacing: 0.06em; }
 .cc-btn--out { margin-left: auto; border-color: #ffb37a; color: #ffd9be; }
 
+/* The cabinet's own buttons were 24px tall, same as the town's toolbar was.
+   Pause, restart and exit are the ones you reach for mid-game. */
+@media (pointer: coarse), (max-width: 760px), (max-height: 540px) {
+  .cc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+  .cc-btn--big { min-height: 48px; padding: 10px 24px; }
+}
+
 /* touch */
 .cc-touch { position: absolute; inset: 0; pointer-events: none; }
 .cc-touch[hidden] { display: none; }
-.cc-dpad { position: absolute; left: 8px; bottom: 8px; width: 132px; height: 132px; }
+/* GRABBER is played with one button, so it gets one button rather than a
+   d-pad with three dead directions. */
+.cc-onebtn {
+  position: absolute;
+  right: calc(10px + env(safe-area-inset-right, 0px));
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  pointer-events: auto;
+}
+.cc-onebtn .cc-btn { min-width: 96px; min-height: 52px; font-size: 15px; }
+
+.cc-dpad {
+  position: absolute;
+  left: calc(8px + env(safe-area-inset-left, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  width: 132px;
+  height: 132px;
+}
 
 .cc-d {
   position: absolute;
