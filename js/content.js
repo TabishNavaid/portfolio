@@ -72,6 +72,105 @@ window.PORTFOLIO = (function () {
 
   const PROJECTS = [
     {
+      id: 'first-seen',
+      state: 'live at 1stseen.win',
+      kind: 'forecasting web app',
+      openLabel: 'how it learns an opening date',
+      title: '1stSeen',
+      featured: true,
+      year: '2026',
+      subtitle: 'Internship and new-grad programs, with the date each one is most likely to open next.',
+      measure: { from: '12,600 requests', to: '50', label: 'database requests per 1,000 observations' },
+      preview:
+        'It learns when each program opens every year from that program’s own posting history, then gives the window it is likely to open in next and how confident it is.',
+      stack: ['TypeScript', 'Cloudflare Workers', 'Supabase', 'PostgreSQL', 'Python'],
+      built: ['A feed of what just opened', 'Likely opening dates', 'A prep plan per saved program'],
+      problem:
+        'Internship programs open at roughly the same time every year, but that date is scattered across company job boards and nobody writes it down. By the time a posting reaches a group chat the early window has gone.',
+      whatIBuilt: [
+        'A live feed of programs that opened in the last 45 days, each linked to its posting',
+        'A predicted opening window per program, with a Low, Medium or High confidence',
+        'A watchlist that works back from a likely date, so you know when to start networking and when the résumé needs to be ready',
+        'Collection from public job boards and from archived copies of career pages going back several years',
+        'A question-answering service on Cloud Run, with GitHub Actions collecting current postings twice a day'
+      ],
+      techStack: 'TypeScript, Cloudflare Workers, Supabase Postgres, Python, Google Cloud Run, GitHub Actions',
+      productDecisions: [
+        'A program without enough history says so instead of guessing. A confident-looking date with nothing behind it is worse than no date at all.',
+        'Every date links to the page it was seen on, so a prediction can be checked rather than taken on trust.',
+        'Confidence is Low, Medium or High rather than a percentage. The underlying accuracy is not validated yet, and a number would imply that it was.'
+      ],
+      engineeringDecisions: [
+        'Collection used to talk to the database one row at a time. Reading each company’s evidence once and writing in bulk took it from about 12,600 requests per 1,000 observations to about 50, with identical results. On one 2,747-observation run that was 34,528 requests down to 137.',
+        'A past opening is one of three things: exact, from the job board’s own posting date; bounded, between one archived snapshot without the posting and one with it; or only known to have been open by some date. They are stored apart, never promoted into one another, and weighted differently by the model.',
+        'Cloudflare’s built-in rate limiting let 13 requests through from one address when it was set to three a minute, so each guest limit is counted exactly by a Durable Object instead.',
+        'In production, collection reads a site’s robots.txt before every request and skips whatever it disallows, including whole job boards.',
+        'The test suite recomputes every number the site shows, including totals, filters and a program’s past openings, with independent database queries, and fails on any mismatch.'
+      ],
+      learned:
+        'The forecast is a statistical model rather than an AI, and saying so plainly turned out to matter more than the model did. People will trust a date they can click through and check.',
+      visual: {
+        src: 'assets/images/work/1stseen-landing.webp',
+        width: 1200,
+        height: 750,
+        alt: 'The 1stSeen landing page: dark green and cream, reading “Know when internships open, before everyone else” above a Get started button and a Browse programs button.'
+      },
+      links: [
+        { label: '1stseen.win', href: 'https://1stseen.win' },
+        { label: 'GitHub', href: 'https://github.com/TabishNavaid/1stseen' }
+      ],
+      missing:
+        'The opening dates are predictions from public posting history, and how accurate they are has not been measured yet. The site says so on its own pages too.'
+    },
+    {
+      id: 'emberwing',
+      state: 'deployed, in the lobby on 5 November',
+      kind: 'lobby installation',
+      openLabel: 'why nobody can lose',
+      title: 'Emberwing: The Way Home',
+      featured: true,
+      year: '2026',
+      subtitle:
+        'A lobby game for the Walla Walla Symphony’s Symphonicon, played on a projector with a motion-capture lantern.',
+      preview:
+        'You are the lighthouse keeper. Point your light into the fog to find a lost baby dragon, then guide it home through a string of hoops. A run takes about 45 seconds.',
+      stack: ['JavaScript', 'Canvas 2D', 'Vite', 'WebSockets'],
+      built: ['Three levels, for any age', 'A light cursor any rig can drive', 'A flock that builds through the night'],
+      problem:
+        'Act II is music from How to Train Your Dragon, and the audience waits in the lobby before it. The game had to be picked up by a six-year-old and a grandparent, first time, with nobody standing there explaining it.',
+      whatIBuilt: [
+        'Three levels (hatchling, flier, storm rider) so small children, teenagers and grandparents can each have a go',
+        'A light cursor fed by a motion-capture lantern prop, a mouse, or a phone, with corner calibration for the rig',
+        'A flock that accumulates over the evening, with every dragon that gets home leaving a ribbon in the aurora',
+        'An operator layer: fullscreen, scene skip, a debug overlay, reduced motion, and a QR code so a queue can play on their own phones',
+        'A smoke test that checks the deployed site actually plays'
+      ],
+      techStack: 'JavaScript, Canvas 2D, Vite, WebSockets, GitHub Actions, GitHub Pages',
+      productDecisions: [
+        'Nobody can lose. Hitting something makes the dragon tumble and carry on, because a lobby game that fails you in front of a queue does not get a second player.',
+        'When the start screen returns it ignores the light for two seconds, and a light left resting on a level has to move off it and back before it counts. Otherwise the next guest inherits whatever the last one was pointing at.',
+        'Nothing needs a click: every control is “hold the light here” and a ring fills, which is the only gesture a lantern prop can make.'
+      ],
+      engineeringDecisions: [
+        'The game needs exactly one x/y point, so the prop can arrive three ways: as the ordinary OS mouse, over a WebSocket at one message a frame, or from a parent frame by postMessage. The lobby rig can be swapped without the game changing.',
+        'Calibration maps the four corners and applies only to the mocap input, so plugging in a mouse still behaves normally.',
+        'If the lobby laptop cannot keep up, the game drops some of its own sparkle and puts it back once frames are quick again, rather than stuttering through the evening.',
+        'The night is kept in localStorage, so a refresh or a crashed tab does not lose the flock, and it clears itself on a new day.'
+      ],
+      learned:
+        'Designing for a prop that can only point and hold, with no click and no keyboard, cut out most of the interface before I wrote any of it. The constraint did the design work.',
+      visual: {
+        src: 'assets/images/work/emberwing-attract.webp',
+        width: 1200,
+        height: 750,
+        alt: 'The Emberwing attract screen: a pixel lighthouse sweeping its beam over a stormy sea at a small pink dragon, beside three level rings reading Hatchling, Flier and Storm Rider.'
+      },
+      links: [
+        { label: 'Play it', href: 'https://tabishnavaid.github.io/emberwing/' },
+        { label: 'GitHub', href: 'https://github.com/TabishNavaid/emberwing' }
+      ]
+    },
+    {
       id: 'sos-lost-found',
       state: 'rebuild in progress',
       kind: 'campus web app',
@@ -336,6 +435,12 @@ window.PORTFOLIO = (function () {
         'Everything in the town is also listed in a text map directory, so you never have to walk anywhere to find the work.',
         'You can drag anywhere on the town to walk. The first person who tried it on a phone couldn’t comfortably reach the on-screen d-pad.'
       ],
+      visual: {
+        src: 'assets/images/work/this-site-meadow.webp',
+        width: 1200,
+        height: 750,
+        alt: 'Meadow Desktop: a paper window reading “hi! i’m tabish” with five illustrated icons, standing in a sunlit meadow with a cat sitting beside it and a doodle of Tabish peering over the top.'
+      },
       engineeringDecisions: [
         'One number from 0 to 1 drives every colour on the desktop, so day and night use the same code.',
         'Windows are native dialogs, so the browser handles focus trapping and returning focus.',
@@ -520,8 +625,8 @@ window.PORTFOLIO = (function () {
   const BRIEF = {
     lede:
       'I like building web tools for problems that are already a bit messy, like a campus lost-and-found where you can prove something’s yours without handing a stranger your number, or a vacancy map for downtown Walla Walla. I also work on Whitman’s thousand-page website, and I’ve been building a lofi music generator in my spare time.',
-    featured: ['sos-lost-found', 'porchlight', 'walla-walla-map'],
-    alsoBuilt: ['pond-hopper', 'aakritam', 'bloom', 'this-site', 'restaurant-management']
+    featured: ['first-seen', 'sos-lost-found', 'porchlight', 'emberwing', 'walla-walla-map'],
+    alsoBuilt: ['pond-hopper', 'aakritam', 'this-site', 'bloom', 'restaurant-management']
   };
 
   /* --- field trip: the town ----------------------------------------------- */
@@ -632,8 +737,10 @@ window.PORTFOLIO = (function () {
             panel: {
               title: 'repositories',
               sections: [
-                { kind: 'text', body: 'Five of these are public, and they should all run if you clone them.' },
+                { kind: 'text', body: 'Seven of these are public, and they should all run if you clone them.' },
                 { kind: 'links', items: [
+                  L('1stSeen', 'https://github.com/TabishNavaid/1stseen'),
+                  L('Emberwing', 'https://github.com/TabishNavaid/emberwing'),
                   L('SOS Lost & Found', 'https://github.com/TabishNavaid/SOS---Save-Our-Souls'),
                   L('Porchlight', 'https://github.com/TabishNavaid/porchlight'),
                   L('Pond Hopper', 'https://github.com/TabishNavaid/pond-hopper'),
