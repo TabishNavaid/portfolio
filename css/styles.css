@@ -254,50 +254,126 @@ html[data-mode='chooser'] .skip-link { display: none; }
 
 html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
 
-/* --- the machine: boot screen and profile chooser ----------------------- */
+/* --- the lock screen: wallpaper, identity, and the three ways in ---------
+
+   This is the first screen, so it says who this is before it asks which way
+   in. The wallpaper is Meadow Desktop standing still, built from the same
+   classes and tokens as the real scene.
+
+   Every colour here is pinned to a *-day token rather than the live one.
+   main.js writes the meadow's current sky, grass, cloud and accent values
+   onto <html> as inline custom properties, and its stop() clears only the
+   `dark` class, not those properties. Leaving the meadow at midnight and
+   hitting switch profile would otherwise hand this screen a night sky with
+   daytime text on it, and a focus ring mixed for a dark background.
+
+   .profile itself is left alone: 404.html renders the same component, and
+   the tile layout below is scoped to #chooserList so that page keeps its
+   rows. */
 
 .boot {
   position: fixed;
   inset: 0;
   z-index: 300;
   display: grid;
-  place-items: center;
-  padding: 20px;
-  background:
-    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.55), transparent 58%),
-    linear-gradient(to bottom, #cbeeff 0%, #dff1e6 62%, #b8cb8a 100%);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: linear-gradient(to bottom, var(--sky-top-day) 0%, var(--sky-top-day) 54%, var(--sky-bot-day) 80%, var(--sky-bot-day) 100%);
+  color: var(--win-text-day);
+
+  /* day, whatever the meadow left behind */
+  --accent: var(--accent-day);
+  --accent-ink: #a8501f;
+  --cloud-opacity: 0.72;
+  --night-opacity: 0;
+  --sun-opacity: 1;
+  --sun-scale: 1;
 }
 
 .boot[hidden] { display: none; }
 
-.boot__machine {
-  width: min(560px, 100%);
-  max-height: 100%;
-  border: 2.5px solid #2d2c29;
-  border-radius: var(--radius);
-  background: #fdfaf2;
-  color: #2d2c29;
-  box-shadow: 10px 13px 0 rgba(49, 67, 76, 0.17);
+/* --- wallpaper --- */
+
+.lock__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
-.boot__bar {
+.lock__sun {
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  width: 74px;
+  height: 74px;
+}
+
+.lock__cat {
+  position: absolute;
+  right: 3.5%;
+  bottom: 0;
+  z-index: 4;
+  display: block;
+  width: clamp(96px, 11vw, 158px);
+  filter: drop-shadow(0 7px 8px rgba(45, 72, 50, 0.15));
+}
+
+.lock__cat img { display: block; width: 100%; height: auto; }
+
+/* --- the menu bar --- */
+
+.lock__bar {
+  position: relative;
+  z-index: 2;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 14px;
-  background: #2d2c29;
-  color: #fdfdfd;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px clamp(14px, 3vw, 28px);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
+  color: rgba(45, 44, 41, 0.7);
 }
 
-.boot__dots { display: flex; gap: 6px; margin-left: auto; }
-.boot__dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); }
+.lock__os { letter-spacing: 0.02em; }
+.lock__clock { display: flex; align-items: baseline; gap: 9px; }
 
-.boot__screen { padding: clamp(20px, 4vw, 32px); }
+.lock__time {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(45, 44, 41, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.lock__time:empty { display: none; }
+.lock__place { font-size: 11px; opacity: 0.8; }
+
+/* --- the panel: avatar, name, tagline, tiles --- */
+
+/* One cell, holding either the boot line or the chooser. The column is
+   written as minmax(0, 1fr) rather than left to the auto that place-items
+   would give it. Both measure the same here, because the tile row carries
+   width:100% as well as a max-width and so cannot push the column past the
+   container; this is belt and braces against an auto column being sized to
+   its item's max-content, which is the usual way a layout like this ends up
+   wider than the phone it is on. */
+.boot__screen {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  padding: 0 clamp(14px, 4vw, 32px);
+  overflow-y: auto;
+}
+
+.boot__screen > * { grid-area: 1 / 1; min-width: 0; }
 
 .boot__startup {
+  align-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -326,7 +402,17 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
 
 @keyframes boot-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
-.chooser { animation: boot-in 0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+/* the identity block sits in the middle, the hint stays at the bottom */
+.chooser {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  min-width: 0;
+  padding-bottom: clamp(12px, 3vh, 24px);
+  animation: boot-in 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .chooser[hidden] { display: none; }
 
 @keyframes boot-in {
@@ -334,22 +420,64 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   to { opacity: 1; transform: none; }
 }
 
-.chooser__title {
-  margin: 0 0 4px;
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: clamp(24px, 4.6vw, 32px);
+.lock__panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  align-content: center;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(10px, 2vh, 22px) 0;
+}
+
+.lock__avatar {
+  display: block;
+  width: clamp(88px, 11vw, 120px);
+  aspect-ratio: 1;
+}
+
+.lock__avatar picture { display: block; width: 100%; height: 100%; }
+.lock__avatar img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.lock__name {
+  margin: 14px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(27px, 4.4vw, 42px);
+  line-height: 1.15;
   text-align: center;
 }
 
+.lock__tagline {
+  max-width: 44ch;
+  margin: 9px 0 0;
+  font-size: clamp(13.5px, 1.4vw, 16px);
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0.76;
+}
+
+.lock__prompt {
+  margin: clamp(16px, 3vh, 28px) 0 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.07em;
+  opacity: 0.6;
+}
+
+/* --- the three tiles --- */
+
 .chooser__list {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 18px 0 0;
+  gap: clamp(9px, 1.5vw, 18px);
+  width: 100%;
+  max-width: 860px;
+  margin: 13px 0 0;
   padding: 0;
   list-style: none;
 }
+
+.chooser__list > li { display: flex; flex: 1 1 0; min-width: 0; }
 
 .profile {
   display: grid;
@@ -371,10 +499,9 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
 .profile:focus-visible { border-color: #2d2c29; background: color-mix(in srgb, #d96e34 12%, #fdfaf2); }
 .profile:active { transform: translateY(1px); }
 
-/* Three drawn icons in three different hands — a doodle, a wallet, a pixel
-   street. No tile: they sit straight on the paper, which is what the rest of
-   the site does with its art, and it lets them be drawn a size larger in the
-   same row. */
+/* Three drawn icons in three different hands: a doodle, a wallet, a pixel
+   street. No tile behind them: they sit straight on the paper, which is what
+   the rest of the site does with its art. */
 .profile__avatar {
   grid-row: span 2;
   display: grid;
@@ -422,24 +549,86 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   white-space: nowrap;
 }
 
+/* On the lock screen the same component stands up as a card, like an account
+   on a login screen. Scoped to #chooserList so 404.html keeps its rows. */
+#chooserList .profile {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  justify-items: center;
+  gap: 0;
+  padding: 17px 13px 19px;
+  border-color: rgba(45, 44, 41, 0.14);
+  background: color-mix(in srgb, #fdfaf2 80%, transparent);
+  box-shadow: 0 6px 16px rgba(49, 67, 76, 0.1);
+  text-align: center;
+}
+
+#chooserList .profile:hover,
+#chooserList .profile:focus-visible { background: color-mix(in srgb, #d96e34 10%, #fdfaf2); }
+
+#chooserList .profile__avatar {
+  grid-row: auto;
+  width: clamp(68px, 7.6vw, 96px);
+  height: clamp(68px, 7.6vw, 96px);
+}
+
+#chooserList .profile__name { align-self: auto; margin-top: 11px; }
+#chooserList .profile__sub { align-self: auto; max-width: 25ch; margin-top: 5px; font-size: 12.5px; }
+
+/* the badge drops under the name rather than running off a centred tile */
+#chooserList .profile.is-last .profile__name::after {
+  display: block;
+  width: fit-content;
+  margin: 6px auto 0;
+}
+
 .chooser__foot {
-  margin: 16px 0 0;
+  margin: 14px 0 0;
   font-family: var(--font-mono);
   font-size: 11px;
   text-align: center;
   opacity: 0.6;
 }
 
-.chooser__foot-sep { margin: 0 6px; }
+/* --- phones: the tiles become rows again --- */
 
+@media (max-width: 619.98px) {
+  .chooser__list { flex-direction: column; gap: 8px; max-width: 430px; }
+  .chooser__list > li { flex: 0 0 auto; }
+
+  #chooserList .profile {
+    grid-template-columns: 58px minmax(0, 1fr);
+    align-content: center;
+    justify-items: start;
+    gap: 2px 13px;
+    padding: 10px 13px;
+    text-align: left;
+  }
+
+  #chooserList .profile__avatar { grid-row: span 2; width: 58px; height: 58px; }
+  #chooserList .profile__name { align-self: end; margin-top: 0; }
+  #chooserList .profile__sub { align-self: start; max-width: none; margin-top: 0; }
+
+  #chooserList .profile.is-last .profile__name::after {
+    display: inline;
+    width: auto;
+    margin: 0 0 0 8px;
+  }
+
+  .lock__cat { width: 92px; right: 2%; }
+  .lock__sun { width: 58px; height: 58px; top: 6%; right: 8%; }
+  .lock__name { margin-top: 12px; }
+}
+
+/* 404.html's rows, which are the same component on a narrower page. The
+   lock screen's own tiles are handled above and are scoped harder, so they
+   are not touched by this. */
 @media (max-width: 420px) {
-  .boot__screen { padding: 18px 14px 20px; }
   .profile { grid-template-columns: 54px minmax(0, 1fr); gap: 2px 11px; padding: 10px; }
   .lost__list .profile { grid-template-columns: 54px minmax(0, 1fr) auto; }
   .profile__avatar { width: 54px; height: 54px; }
   .profile__sub { font-size: 12px; }
   .profile.is-last .profile__name::after { display: block; width: max-content; margin: 3px 0 0; }
-  .chooser__foot-sep, .chooser__foot span:last-child { display: none; }
 }
 
 @media (max-height: 620px) {

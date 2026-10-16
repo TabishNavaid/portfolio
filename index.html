@@ -39,7 +39,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=20261016-sketchbook" />
+  <link rel="stylesheet" href="css/styles.css?v=20261016-lockscreen" />
 
   <script type="application/ld+json">
     {
@@ -91,35 +91,90 @@
     <rect width="100%" height="100%" filter="url(#noiseFilter)" />
   </svg>
 
-  <!-- ==================== boot + profile chooser ==================== -->
+  <!-- ==================== lock screen: boot + profile chooser ====================
+       The first screen says who this is before it asks which way in. The
+       wallpaper is Meadow Desktop standing still: the same sky, clouds, hills
+       and cat, built from the same classes and tokens, with nothing to drag
+       and nothing that moves. -->
   <div class="boot" id="boot" hidden>
-    <div class="boot__machine">
-      <div class="boot__bar" aria-hidden="true">
-        <span class="boot__bar-name">tabish.os</span>
-        <span class="boot__dots"><i></i><i></i><i></i></span>
+
+    <div class="lock__scene" aria-hidden="true">
+      <span class="lock__sun"><span class="sun"></span></span>
+
+      <div class="cloud" style="top:14%; left:8%;">
+        <svg width="112" height="47" viewBox="0 0 120 50" focusable="false">
+          <ellipse cx="30" cy="35" rx="30" ry="15" fill="#fff" />
+          <ellipse cx="60" cy="25" rx="35" ry="20" fill="#fff" />
+          <ellipse cx="90" cy="35" rx="28" ry="14" fill="#fff" />
+        </svg>
+      </div>
+      <div class="cloud" style="top:9%; left:57%;">
+        <svg width="84" height="38" viewBox="0 0 90 40" focusable="false">
+          <ellipse cx="22" cy="28" rx="22" ry="11" fill="#fff" />
+          <ellipse cx="45" cy="18" rx="26" ry="15" fill="#fff" />
+          <ellipse cx="70" cy="28" rx="20" ry="10" fill="#fff" />
+        </svg>
       </div>
 
-      <div class="boot__screen">
-        <p class="boot__startup" id="bootStartup" aria-hidden="true">
-          <span class="boot__sprout">
-            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-              <path d="M16 27V12M16 15.5Q10 10 16 10M16 19.5Q22 14 16 14" fill="none" stroke="currentColor"
-                stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <span class="boot__typing">starting up<i class="boot__caret"></i></span>
-        </p>
+      <!-- the hills take the day fills directly: see .boot in styles.css -->
+      <svg class="grass-layer grass-far" viewBox="0 0 1440 200" preserveAspectRatio="none" focusable="false">
+        <path d="M0,90 Q360,40 720,80 T1440,70 V200 H0 Z" fill="var(--grass-far-day)" />
+      </svg>
 
-        <section class="chooser" id="chooser" hidden aria-labelledby="chooserTitle">
-          <h1 class="chooser__title" id="chooserTitle">who’s logging in?</h1>
+      <div class="meadow-deco" style="left:12%;">🌼</div>
+      <div class="meadow-deco" style="left:87%; bottom:7.5%;">🌼</div>
+
+      <svg class="grass-layer grass-near" viewBox="0 0 1440 140" preserveAspectRatio="none" focusable="false">
+        <path d="M0,60 Q360,100 720,55 T1440,75 V140 H0 Z" fill="var(--grass-near-day)" />
+      </svg>
+
+      <picture class="lock__cat">
+        <source type="image/webp" srcset="assets/images/opt/cat-morning-no-music.webp" />
+        <img src="assets/images/cat-morning-no-music.gif" width="300" height="300" alt="" decoding="async" />
+      </picture>
+    </div>
+
+    <div class="lock__bar">
+      <span class="lock__os">tabish.os</span>
+      <span class="lock__clock">
+        <span class="lock__time" id="lockTime"></span>
+        <span class="lock__place">walla walla, wa</span>
+      </span>
+    </div>
+
+    <div class="boot__screen">
+      <p class="boot__startup" id="bootStartup" aria-hidden="true">
+        <span class="boot__sprout">
+          <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <path d="M16 27V12M16 15.5Q10 10 16 10M16 19.5Q22 14 16 14" fill="none" stroke="currentColor"
+              stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="boot__typing">starting up<i class="boot__caret"></i></span>
+      </p>
+
+      <section class="chooser" id="chooser" hidden aria-labelledby="chooserTitle">
+        <div class="lock__panel">
+          <span class="lock__avatar" aria-hidden="true">
+            <picture>
+              <source type="image/webp" srcset="assets/images/opt/about-profile.webp" />
+              <img src="assets/images/opt/about-profile.png" width="560" height="560" alt="" decoding="async" />
+            </picture>
+          </span>
+          <h1 class="lock__name" id="chooserTitle">Tabish Navaid</h1>
+          <!-- filled from PORTFOLIO.profile by modes.js, so the tagline is
+               written in one place like every other fact on the site -->
+          <p class="lock__tagline" id="lockTagline"></p>
+
+          <p class="lock__prompt">pick a way in</p>
+
           <ul class="chooser__list" id="chooserList">
             <li>
               <button class="profile" type="button" data-mode="brief">
                 <span class="profile__avatar" aria-hidden="true">
                   <picture>
                     <source type="image/webp" srcset="assets/images/opt/the-brief.webp" />
-                    <img src="assets/images/opt/the-brief.png" width="360" height="360" alt=""
-                      decoding="async" />
+                    <img src="assets/images/opt/the-brief.png" width="360" height="360" alt="" decoding="async" />
                   </picture>
                 </span>
                 <span class="profile__name">The Brief</span>
@@ -131,8 +186,7 @@
                 <span class="profile__avatar" aria-hidden="true">
                   <picture>
                     <source type="image/webp" srcset="assets/images/opt/meadow-desktop.webp" />
-                    <img src="assets/images/opt/meadow-desktop.png" width="360" height="360" alt=""
-                      decoding="async" />
+                    <img src="assets/images/opt/meadow-desktop.png" width="360" height="360" alt="" decoding="async" />
                   </picture>
                 </span>
                 <span class="profile__name">Meadow Desktop</span>
@@ -144,8 +198,7 @@
                 <span class="profile__avatar" aria-hidden="true">
                   <picture>
                     <source type="image/webp" srcset="assets/images/opt/field-trip.webp" />
-                    <img src="assets/images/opt/field-trip.png" width="360" height="360" alt=""
-                      decoding="async" />
+                    <img src="assets/images/opt/field-trip.png" width="360" height="360" alt="" decoding="async" />
                   </picture>
                 </span>
                 <span class="profile__name">Field Trip</span>
@@ -153,13 +206,12 @@
               </button>
             </li>
           </ul>
-          <p class="chooser__foot">
-            <span id="chooserHint">arrow keys to move, enter to log in.</span>
-            <span class="chooser__foot-sep" aria-hidden="true">·</span>
-            <span>you can switch profiles from inside any of them.</span>
-          </p>
-        </section>
-      </div>
+        </div>
+
+        <p class="chooser__foot">
+          <span id="chooserHint">arrow keys to move, enter to log in</span>
+        </p>
+      </section>
     </div>
   </div>
 
@@ -397,9 +449,9 @@
       if (!validPath || !validMode) window.PortfolioFail('unknown public address');
     })();
   </script>
-  <script src="js/content.js?v=20261016-sketchbook" defer
+  <script src="js/content.js?v=20261016-lockscreen" defer
     onerror="window.PortfolioFail('the shared content file did not load')"></script>
-  <script src="js/modes.js?v=20261016-sketchbook" defer
+  <script src="js/modes.js?v=20261016-lockscreen" defer
     onerror="window.PortfolioFail('the profile loader did not load')"></script>
 </body>
 

@@ -64,7 +64,7 @@
   /* Lazy mode files change often while the three experiences are being tuned.
      A version on those URLs prevents an older cached game.js from loading
      beside a newer modes.js and then failing to register its profile. */
-  const ASSET_VERSION = '20261016-sketchbook';
+  const ASSET_VERSION = '20261016-lockscreen';
   const BOOT_MS = 780;
   /* matches --curtain in css/styles.css and CURTAIN in the game */
   const CURTAIN_MS = 200;
@@ -164,6 +164,50 @@
     return btn;
   }
 
+  /* --------------------------------------------- the lock screen's own bits */
+
+  /* Two things on this screen are not in the markup: the tagline, which is a
+     fact and so belongs in content.js with every other fact, and the clock.
+
+     The clock re-reads the time once a minute, and schedules itself onto the
+     next minute boundary rather than polling on an interval, so it costs one
+     timer and one text write per minute and never drifts a minute behind.
+     It stops when a profile opens: nothing is reading it from in there. */
+
+  const CLOCK_TZ = 'America/Los_Angeles';
+  let clockTimer = null;
+
+  function paintTagline() {
+    const el = document.getElementById('lockTagline');
+    const p = window.PORTFOLIO && window.PORTFOLIO.profile;
+    if (!el || !p) return;
+    /* taglinePlain is the one written for a text node; tagline may carry an
+       entity for the desktop's innerHTML */
+    el.textContent = p.taglinePlain || p.tagline || '';
+  }
+
+  function stopClock() {
+    clearTimeout(clockTimer);
+    clockTimer = null;
+  }
+
+  function startClock() {
+    stopClock();
+    const el = document.getElementById('lockTime');
+    if (!el) return;
+    let fmt;
+    try {
+      fmt = new Intl.DateTimeFormat('en-US', { timeZone: CLOCK_TZ, hour: 'numeric', minute: '2-digit' });
+    } catch (err) {
+      return; /* no time zone data: the bar just carries the place name */
+    }
+    const tick = () => {
+      el.textContent = fmt.format(new Date()).toLowerCase();
+      clockTimer = setTimeout(tick, 60000 - (Date.now() % 60000) + 250);
+    };
+    tick();
+  }
+
   /* 3 + 6 --------------------------------------- boot, chooser, and state */
 
   const boot = document.getElementById('boot');
@@ -173,7 +217,7 @@
   /* on a phone the arrow keys are not the news */
   const chooserHint = document.getElementById('chooserHint');
   if (chooserHint && window.matchMedia('(pointer: coarse)').matches) {
-    chooserHint.textContent = 'tap a profile to log in.';
+    chooserHint.textContent = 'tap a profile to log in';
   }
   const skipLink = document.querySelector('.skip-link');
   const root = document.documentElement;
@@ -217,6 +261,7 @@
     const token = {};
     starting = token;
     const from = active ? active.id : null;
+    stopClock();
     boot.hidden = true;
     await stopActive();
     setChrome(id);
@@ -268,6 +313,7 @@
       startup.hidden = true;
       chooser.hidden = false;
       boot.classList.add('is-ready');
+      startClock();
       if (options.focus !== false) {
         const target = buttons.find((b) => b.dataset.mode === last) || buttons[0];
         if (target) target.focus({ preventScroll: true });
@@ -363,5 +409,6 @@
     reduceMotion: reduceMotion
   };
 
+  paintTagline();
   applyUrl({ focus: true });
 })();
