@@ -1,24 +1,19 @@
 /* ==========================================================================
    brief.js — The Brief
 
-   The recruiter's route, set as an editorial page rather than a stack of
-   cards.
+   Sheet 1 of a set of three. The Brief is drawn as a technical drawing: a
+   bordered sheet on graph paper, a ruler across the top that is also the
+   navigation, a title block with the particulars, numbered figures, dimension
+   lines, and notes in the margin with leader lines back to what they are
+   about. Meadow Desktop and Field Trip are sheets 2 and 3 of the same set.
 
-   The orange line is a gesture, not a border. It appears five times, does one
-   job each time, and is absent everywhere else:
+   The page can be read before any of this runs: every project's reasoning
+   sits in a native <details>, so it opens from the keyboard with no script.
+   What the script adds on top:
 
-     1  a hook under the name, flicking up towards the portrait
-     2  a short lead-in from the hero to "selected work"
-     3  the rule the project navigation hangs from
-     4  the experience timeline, with a stop per organisation
-     5  the underline of the email address
-
-   Each stroke is its own <path>, measured from the laid-out page rather than
-   hard-coded, and each draws itself as its own part of the page arrives. No
-   stroke exists to keep another one company.
-
-   Everything else here is layout and the two interactive pieces the page
-   needs: a carousel and a tab strip.
+     1  scroll spy for the ruler
+     2  blocks rising in as they arrive, from a base state that is visible
+     3  the email signature inking itself, once
 
    Facts come from js/content.js and are never edited on the way through.
    ========================================================================== */
@@ -27,787 +22,601 @@ window.Brief = (function () {
   'use strict';
 
   const C = window.PORTFOLIO;
+  const OPT = 'assets/images/opt/';
 
   const esc = (v) =>
     String(v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
+  /* a few content strings carry an entity for the desktop's innerHTML */
+  const plain = (v) => String(v).replace(/&amp;/g, '&');
+
   const outside = (href) => String(href).startsWith('http');
   const ext = (href) => (outside(href) ? ' target="_blank" rel="noopener noreferrer"' : '');
+  const newTab = (href) => (outside(href) ? '<span class="visually-hidden"> (opens in a new tab)</span>' : '');
 
-  const quiet = (label, href) =>
-    `<a class="q-link" href="${esc(href)}"${ext(href)}>${esc(label)}${
-      outside(href) ? '<span class="q-link__out" aria-hidden="true">↗</span>' +
-        '<span class="visually-hidden"> (opens in a new tab)</span>' : ''
-    }</a>`;
-
-  /* technology reads as prose, not as a row of chips */
+  /* technology reads as one line of prose, never as a row of chips */
   const dotted = (list) => (list || []).map(esc).join(' &middot; ');
 
-  /* links, and separately the honest reason there are none: a note reads as a
-     caption under the links, never as another link beside them */
-  const linksOf = (p) => (p.links || []).map((l) => quiet(l.label, l.href)).join('');
-  const noteOf = (p) => p.status || p.missing || '';
+  /* The drawn art is decoration, so every picture here is alt="". The only
+     images with alt text are the project screenshots, and theirs was written
+     in content.js. */
+  const pic = (name, cls, size) =>
+    `<picture><source type="image/webp" srcset="${OPT}${name}.webp" />` +
+    `<img class="${cls}" src="${OPT}${name}.png" width="${size || 360}" height="${size || 360}" alt="" decoding="async" /></picture>`;
 
-  /* --- the three drawn details -------------------------------------------
-     Line work in the same ink as the strokes, each one attached to something
-     that is actually nearby: the project you are on, the tier of tools that
-     is still growing, and the envelope you are about to write to. */
+  /* the cat has no PNG derivative; its fallback is the rebuilt GIF */
+  const catPic = (cls) =>
+    `<picture><source type="image/webp" srcset="${OPT}cat-morning-no-music.webp" />` +
+    `<img class="${cls}" src="assets/images/cat-morning-no-music.gif" width="300" height="300" alt="" decoding="async" /></picture>`;
 
+  /* --- the set of sheets ---------------------------------------------------
+     The three profiles are one numbered set, in the chooser's order. The
+     fallbacks only matter if modes.js has not registered them. */
+
+  const MODES = window.Modes || null;
+  const SHEETS = (MODES && MODES.ids) || ['brief', 'meadow', 'field-trip'];
+  const FALLBACK = {
+    brief: { name: 'The Brief', icon: 'the-brief' },
+    meadow: { name: 'Meadow Desktop', icon: 'meadow-desktop' },
+    'field-trip': { name: 'Field Trip', icon: 'field-trip' }
+  };
+  const spec = (id) => (MODES && MODES.spec && MODES.spec[id]) || FALLBACK[id];
+  const sheetNo = (id) => SHEETS.indexOf(id) + 1;
+  const SHEET_OF = `${sheetNo('brief')} of ${SHEETS.length}`;
+  const OTHERS = SHEETS.filter((id) => id !== 'brief');
+
+  /* --- line work -----------------------------------------------------------
+     Every stroke on the page is drawn slightly off true, the way a pen goes. */
+
+  /* One filter: it nudges a ruled border a pixel or two either way so the
+     border reads as drawn. The seed is fixed, so the wobble is identical on
+     every load. */
+  const DEFS =
+    '<svg class="brief-defs" width="0" height="0" aria-hidden="true" focusable="false">' +
+    '<filter id="briefWobble" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">' +
+    '<feTurbulence type="fractalNoise" baseFrequency="0.024" numOctaves="2" seed="4" result="wobble" />' +
+    '<feDisplacementMap in="SourceGraphic" in2="wobble" scale="4.5" xChannelSelector="R" yChannelSelector="G" />' +
+    '</filter></svg>';
+
+  const POINTER =
+    '<svg class="mark__pointer" viewBox="0 0 14 10" aria-hidden="true" focusable="false">' +
+    '<path d="M 1.5 1.8 C 4.5 2, 9.5 1.6, 12.5 1.9 C 10.6 4.4, 8.8 6.6, 7 8.6 C 5.1 6.4, 3.3 4.2, 1.5 1.8 Z" />' +
+    '</svg>';
+
+  const UNDER =
+    '<svg class="mark__under" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
+    '<path d="M 1.5 5.4 C 20 3.2, 38 6.4, 56 4.4 S 86 3.4, 98.5 4.6" />' +
+    '</svg>';
+
+  const CHEVRON =
+    '<svg class="hook__chev" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+    '<path d="M 5.6 2.8 C 7.8 4.6, 9.6 6.3, 11.2 8 C 9.5 9.8, 7.6 11.5, 5.4 13.2" />' +
+    '</svg>';
+
+  const OUT =
+    '<svg class="out" viewBox="0 0 12 12" aria-hidden="true" focusable="false">' +
+    '<path d="M 2.8 9.3 C 4.9 7.1, 6.9 5.2, 9 3.1 M 4.4 2.9 C 6 2.8, 7.6 2.9, 9.2 3 C 9.3 4.6, 9.2 6.1, 9.1 7.7" />' +
+    '</svg>';
+
+  const RESUME =
+    '<svg class="reach__icon reach__icon--drawn" viewBox="0 0 32 32" aria-hidden="true" focusable="false">' +
+    '<path d="M 8.2 3.6 C 13 3.4, 17.6 3.7, 20.6 3.5 L 25.4 8.6 C 25.6 15, 25.2 22.4, 25.5 28.4 ' +
+    'C 19.6 28.7, 13.4 28.3, 8 28.6 C 8.3 20, 7.9 11.4, 8.2 3.6 Z" />' +
+    '<path d="M 20.4 3.8 C 20.2 5.6, 20.5 7.2, 20.3 8.8 C 22 8.7, 23.6 8.9, 25.2 8.7" />' +
+    '<path d="M 11.8 13.6 C 15 13.4, 18 13.7, 21.2 13.5 M 11.8 17.8 C 15 17.6, 18.2 17.9, 21.4 17.7 M 11.8 22 C 13.8 21.9, 15.6 22.1, 17.6 22" />' +
+    '</svg>';
+
+  /* the ring the cat sits in, over in the title block */
   const RING =
-    '<svg class="idx__ring" viewBox="0 0 56 34" aria-hidden="true" focusable="false">' +
-    '<path d="M 39 5.2 C 27 1.2, 9.5 3.4, 6 12.6 C 2.8 21.2, 12.5 30.6, 27.5 31 ' +
-    'C 42.5 31.4, 51.5 24.6, 49.2 15.4 C 47.6 8.6, 41 4.4, 31 3.4 ' +
-    'C 25.6 2.9, 21.4 3.6, 18 5.4" /></svg>';
-
-  const SPROUT =
-    '<svg class="sprout" viewBox="0 0 24 28" aria-hidden="true" focusable="false">' +
-    '<path class="sprout__stem" d="M 12 27 C 12 21, 12 15, 12 7.5" />' +
-    '<path class="sprout__leaf sprout__leaf--l" d="M 12 15.5 C 7 15.5, 3.5 12, 3.5 7 C 8.5 7.5, 12 10.5, 12 15.5" />' +
-    '<path class="sprout__leaf sprout__leaf--r" d="M 12 11 C 16.5 11, 19.5 8, 19.5 3.8 C 15 4.4, 12 7, 12 11" />' +
+    '<svg class="checked__ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false">' +
+    '<path d="M 32 4.2 C 47.6 3.6, 60.2 15.4, 59.8 31.6 C 59.4 47.8, 47 60.4, 31.2 59.8 C 15.6 59.2, 4 46.6, 4.4 31 C 4.8 16.4, 16.2 4.8, 30.4 4.4" />' +
     '</svg>';
 
-  const WHOOSH =
-    '<svg class="end__whoosh" viewBox="0 0 40 46" aria-hidden="true" focusable="false">' +
-    '<path d="M 3 9 C 9 6.5, 13 6.5, 17 9" />' +
-    '<path d="M 0 23 C 7 20.5, 12 20.5, 17 23" />' +
-    '<path d="M 4 37 C 10 34.5, 14 34.5, 18 37" />' +
+  /* the signature under the email address: one pass, and a flick at the end */
+  const SIG =
+    '<svg class="sig" viewBox="0 0 320 26" aria-hidden="true" focusable="false">' +
+    '<path pathLength="1" d="M 6 16.5 C 44 9.5, 82 18.5, 124 12.6 S 204 7.4, 246 13 S 298 17.6, 314 8.4 C 306 13.6, 299 18, 290 21.8" />' +
     '</svg>';
 
-  /* 1 --------------------------------------------------------------- hero */
+  /* ----------------------------------------------------------------- ruler */
+
+  const MARKS = [
+    { id: 'work', label: 'work', icon: 'icon-work' },
+    { id: 'experience', label: 'experience', icon: 'icon-about' },
+    { id: 'toolbox', label: 'toolbox', icon: 'icon-links' },
+    { id: 'contact', label: 'contact', icon: 'icon-contact' }
+  ];
+
+  function ruler() {
+    return `<header class="ruler">
+        <p class="ruler__id">${esc(C.profile.name)}</p>
+        <nav class="ruler__nav" aria-label="On this sheet">
+          <ul class="marks">
+            ${MARKS.map(
+              (m) => `<li><a class="mark" href="#brief-${m.id}" data-spy="${m.id}">
+                ${pic(m.icon, 'mark__icon')}<span class="mark__text">${esc(m.label)}${UNDER}</span>${POINTER}
+              </a></li>`
+            ).join('')}
+          </ul>
+        </nav>
+        <div class="ruler__switch"></div>
+        <span class="ruler__ticks" aria-hidden="true"></span>
+      </header>`;
+  }
+
+  /* ------------------------------------------------------ hero, title block */
 
   function hero() {
-    return `<section class="hero" aria-labelledby="brief-name">
-        <h1 class="hero__name" id="brief-name" data-ink="name">${esc(C.profile.name)}</h1>
-        <div class="hero__body">
-          <p class="hero__role">${esc(C.profile.taglinePlain)}</p>
-          <p class="hero__meta">${esc(C.profile.school)} &middot; ${esc(C.profile.classYear)} &middot; ${esc(
-      C.profile.location
-    )}</p>
-          <p class="hero__lede">${esc(C.brief.lede)}</p>
-          <p class="hero__do">
-            <a class="cta" href="${esc(C.links.email)}">email me</a>
-            <span class="hero__also">
-              ${C.links.resume ? quiet('résumé', C.links.resume) : ''}
-              ${quiet('GitHub', C.links.github)}
-              ${quiet('LinkedIn', C.links.linkedin)}
-            </span>
-          </p>
-          <p class="hero__mail"><a href="${esc(C.links.email)}">${esc(C.links.emailPlain)}</a></p>
-        </div>
-        <div class="hero__face" aria-hidden="true">
-          <picture>
-            <source type="image/webp" srcset="assets/images/opt/profile.webp" />
-            <img src="assets/images/opt/profile.jpg" width="376" height="376" alt=""
-              decoding="async" fetchpriority="high" />
-          </picture>
-        </div>
+    return `<section class="hero" aria-labelledby="briefName">
+        <h1 class="hero__name" id="briefName">${esc(C.profile.name)}</h1>
+        <p class="hero__role">${esc(C.profile.taglinePlain)}</p>
+        <p class="hero__lede">${esc(C.brief.lede)}</p>
       </section>`;
   }
 
-  /* 2 ------------------------------------------------------- featured work */
+  const reachList = () =>
+    [
+      { label: 'email', href: C.links.email, art: pic('email', 'reach__icon', 300) },
+      { label: 'github', href: C.links.github, art: pic('github', 'reach__icon', 300) },
+      { label: 'linkedin', href: C.links.linkedin, art: pic('linked-in', 'reach__icon', 300) },
+      C.links.resume ? { label: 'résumé', href: C.links.resume, art: RESUME } : null
+    ]
+      .filter(Boolean)
+      .map(
+        (r) => `<li><a class="reach" href="${esc(r.href)}"${ext(r.href)}>${r.art}<span class="reach__name">${esc(r.label)}</span>${newTab(
+          r.href
+        )}</a></li>`
+      )
+      .join('');
 
-  function shot(p) {
-    if (p.visual) {
-      return `<figure class="shot">
-          <img src="${esc(p.visual.src)}" width="${p.visual.width}" height="${p.visual.height}"
-            alt="${esc(p.visual.alt)}" loading="lazy" decoding="async" />
-        </figure>`;
-    }
-    /* the one featured project with nothing to show gets a set title page
-       rather than an empty frame */
-    return `<figure class="shot shot--set" aria-hidden="true">
-        <p class="shot__set-title">${esc(p.title)}</p>
-        <p class="shot__set-meta">${dotted(p.stack)}</p>
-      </figure>`;
-  }
+  /* The cat signs the drawing. Meadow Desktop has it down as quality
+     assurance, so it is the one who checked this sheet. */
+  const checkedBy = () =>
+    `<span class="checked">
+          <span class="checked__seat">${RING}${catPic('checked__art')}</span>
+          <span class="checked__name">the cat</span>
+        </span>`;
 
-  function lens(label, items) {
-    if (!items || !items.length) return '';
-    return `<div class="proof__lens">
-        <p class="proof__key">${esc(label)}</p>
-        ${items.slice(0, 2).map((i) => `<p class="proof__line">${esc(i)}</p>`).join('')}
+  /* The way off this sheet. Understated on purpose: the thumbnail the chooser
+     uses, the sheet number, and the name. The scribble is only drawn on hover
+     and on focus, and the focus ring comes from the one :focus-visible rule
+     every control on the sheet shares.
+
+     The href is an ordinary `?mode=` anchor, which is the one thing it has to
+     be: modes.js listens for a click on any such anchor anywhere in the app
+     and switches profiles in place, so this takes the same path as "switch
+     profile" and never reloads the page. Written as a real link rather than a
+     button so middle-click, cmd-click and "copy link" all still work, and so
+     it is a link with nothing scripted about it if modes.js never arrives.
+
+     "Open" is a visually-hidden prefix rather than an aria-label, so the
+     accessible name reads "Open sheet 2, Meadow Desktop" and still contains
+     every word that is on screen. */
+  const sheetLink = (id) =>
+    `<li><a class="sheets__link" href="?mode=${id}">
+        <span class="visually-hidden">Open </span>
+        <span class="sheets__frame">${pic(spec(id).icon, 'sheets__thumb')}</span>
+        <span class="sheets__text">
+          <span class="sheets__no">sheet ${sheetNo(id)}<span class="visually-hidden">,</span></span>
+          <span class="sheets__name">${esc(spec(id).name)}${UNDER}</span>
+        </span>
+      </a></li>`;
+
+  function titleBlock() {
+    const p = C.profile;
+    return `<div class="tb">
+        <dl class="tb__grid">
+          <div class="tb__cell tb__cell--by"><dt>drawn by</dt><dd class="tb__big">${esc(p.name)}</dd></div>
+          <div class="tb__cell tb__cell--check"><dt>checked by</dt><dd class="tb__check">${checkedBy()}</dd></div>
+          <div class="tb__cell tb__cell--sheet">
+            <dt>sheet</dt>
+            <dd>
+              <span class="tb__big">${SHEET_OF}</span>
+              <ul class="sheets">
+                ${OTHERS.map((id) => sheetLink(id)).join('')}
+              </ul>
+            </dd>
+          </div>
+          <div class="tb__cell tb__cell--drawing"><dt>drawing</dt><dd>${esc(spec('brief').name)}</dd></div>
+          <div class="tb__cell tb__cell--school"><dt>school</dt><dd>${esc(p.school)}, ${esc(p.location)}</dd></div>
+          <div class="tb__cell tb__cell--year"><dt>year</dt><dd>${esc(p.classYear)}</dd></div>
+          <div class="tb__cell tb__cell--reach"><dt>reach</dt><dd><ul class="reaches">${reachList()}</ul></dd></div>
+        </dl>
       </div>`;
   }
 
-  function slide(p, i, total) {
-    const n = String(i + 1).padStart(2, '0');
-    return `<article class="slide" id="brief-slide-${i}" data-project="${esc(p.id)}"
-        aria-roledescription="slide" aria-label="${n} of ${total}, ${esc(p.title)}">
-        ${shot(p)}
-        <div class="slide__text">
-          <p class="slide__idx" aria-hidden="true">${RING}<b>${n}</b></p>
-          <h3 class="slide__title">${esc(p.title)}</h3>
-          <p class="slide__sub">${esc(p.subtitle)}</p>
-          <p class="slide__meta">
-            <span class="slide__year">${esc(p.year || '')}</span>
-            <span class="slide__stack">${dotted(p.stack)}</span>
-          </p>
-          <div class="proof">
-            ${lens('engineering', p.engineeringDecisions)}
-            ${lens('product', p.productDecisions)}
-          </div>
-          <p class="slide__links">${linksOf(p)}</p>
-          ${noteOf(p) ? `<p class="slide__note">${esc(noteOf(p))}</p>` : ''}
+  /* ---------------------------------------------------------------- plates */
+
+  const head = (id, text, icon) =>
+    `<h2 class="sec__h" id="${id}-h" data-rise>${pic(icon, 'sec__icon')}<span>${esc(text)}</span></h2>`;
+
+  function qLink(label, href) {
+    return `<a class="q-link" href="${esc(href)}"${ext(href)}>${esc(label)}${outside(href) ? OUT : ''}${newTab(href)}</a>`;
+  }
+
+  /* a drafting dimension: the before at one tick, the after at the other */
+  const measure = (m) => `<p class="dim">
+      <span class="dim__label">${esc(m.label)}<span class="visually-hidden">:</span></span>
+      <span class="dim__from">${esc(m.from)}</span>
+      <span class="dim__line" aria-hidden="true"></span>
+      <span class="visually-hidden"> to </span>
+      <span class="dim__to">${esc(m.to)}</span>
+    </p>`;
+
+  /* The project's question, and its answer one click away. A native
+     <details>: keyboard-first, and it needs no script to open. */
+  function hook(p) {
+    const groups = [
+      ['engineering', p.engineeringDecisions],
+      ['product', p.productDecisions]
+    ].filter((g) => g[1] && g[1].length);
+    if (!groups.length && !p.learned) return '';
+    return `<details class="hook">
+        <summary class="hook__q">${CHEVRON}<span class="hook__text">${esc(p.openLabel || 'the decisions behind it')}</span></summary>
+        <div class="hook__a">
+          ${groups
+            .map(
+              (g) => `<h4 class="hook__k">${g[0]}</h4>
+              <ul class="hook__list">${g[1].map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`
+            )
+            .join('')}
+          ${p.learned ? `<h4 class="hook__k">learned</h4><p class="hook__learned">${esc(p.learned)}</p>` : ''}
         </div>
+      </details>`;
+  }
+
+  function plate(p, n, wide) {
+    const id = `brief-p-${p.id}`;
+    /* what it is, when it was built, and where it stands: the bar carries the
+       short version, the way a drawing sheet does */
+    const bar = [p.kind, p.year ? `built ${p.year}` : '', p.state ? `status: ${p.state}` : ''].filter(Boolean).join(' · ');
+    /* the reason there is no demo is part of the drawing, so it is a note on
+       it with a leader line, not small print underneath */
+    const note = p.missing;
+    const shot = wide && p.visual;
+    const links = (p.links || []).map((l) => qLink(l.label, l.href)).join('');
+
+    return `<article class="plate" aria-labelledby="${id}" data-rise>
+        <div class="plate__box">
+          <span class="plate__tick plate__tick--a" aria-hidden="true"></span>
+          <span class="plate__tick plate__tick--b" aria-hidden="true"></span>
+          <p class="plate__bar">
+            <span aria-hidden="true">fig. ${String(n).padStart(2, '0')} &middot; ${esc(p.id)}</span>
+            <span>${esc(bar)}</span>
+          </p>
+          <div class="plate__body">
+            ${
+              shot
+                ? `<figure class="plate__figure">
+                    <span class="plate__img"><img src="${esc(p.visual.src)}" width="${p.visual.width}" height="${p.visual.height}"
+                      alt="${esc(p.visual.alt)}" loading="lazy" decoding="async" /></span>
+                    ${p.measure ? measure(p.measure) : ''}
+                  </figure>`
+                : ''
+            }
+            <h3 class="plate__title" id="${id}">${esc(p.title)}</h3>
+            ${hook(p)}
+            <p class="plate__sub">${esc(wide ? p.subtitle : p.preview || p.subtitle)}</p>
+            ${!shot && p.measure ? measure(p.measure) : ''}
+            <p class="plate__stack"><span class="visually-hidden">Built with: </span>${dotted(p.stack)}</p>
+            ${links ? `<p class="plate__links">${links}</p>` : ''}
+          </div>
+        </div>
+        ${note ? `<p class="callout"><span class="callout__k">note</span>${esc(note)}</p>` : ''}
       </article>`;
   }
 
+  /* -------------------------------------------------------------- sections */
+
+  /* `data-section` is the ruler mark a section lights up. Sections that are
+     not on the ruler borrow the nearest one that is. */
+
   function work() {
     const list = C.brief.featured.map(C.project).filter(Boolean);
-    const total = list.length;
-    return `<section class="sec sec--work" id="brief-work" aria-labelledby="brief-work-h">
-        <h2 class="sec__h" id="brief-work-h" data-ink="dot">selected work</h2>
-
-        <div class="stage" role="group" aria-roledescription="carousel" aria-label="Featured projects">
-          <div class="stage__view">
-            <div class="stage__track">${list.map((p, i) => slide(p, i, total)).join('')}</div>
-          </div>
-
-          <div class="rail">
-            <p class="rail__now" aria-hidden="true">
-              <b id="briefCount">01</b><span class="rail__of">/ ${String(total).padStart(2, '0')}</span>
-            </p>
-            <div class="rail__steps" role="tablist" aria-label="Choose a featured project">
-              ${list
-                .map(
-                  (p, i) => `<button class="step" type="button" role="tab" data-go="${i}"
-                    id="brief-step-${i}" aria-controls="brief-slide-${i}"
-                    aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}">
-                    <span class="visually-hidden">${esc(p.title)}</span>
-                    <span class="step__mark" aria-hidden="true"></span>
-                  </button>`
-                )
-                .join('')}
-            </div>
-            <div class="rail__moves">
-              <button class="move" type="button" data-step="-1" aria-label="Previous project">
-                <span aria-hidden="true">&#8592;</span>
-              </button>
-              <button class="move" type="button" data-step="1" aria-label="Next project">
-                <span aria-hidden="true">&#8594;</span>
-              </button>
-            </div>
-          </div>
-          <p class="visually-hidden" role="status" aria-live="polite" id="briefSlideStatus"></p>
-        </div>
+    return `<section class="sec" id="brief-work" data-section="work" aria-labelledby="brief-work-h">
+        ${head('brief-work', 'selected work', 'icon-work')}
+        <div class="plates">${list.map((p, i) => plate(p, i + 1, true)).join('')}</div>
       </section>`;
   }
 
-  /* 3 ----------------------------------------------------------- the index */
-
-  function index() {
-    const rest = C.brief.alsoBuilt.map(C.project).filter(Boolean);
+  function more() {
     const offset = C.brief.featured.length;
-    return `<section class="sec sec--index" id="brief-more" aria-labelledby="brief-more-h">
-        <h2 class="sec__h" id="brief-more-h">also built</h2>
-        <ol class="index">
-          ${rest
+    const list = C.brief.alsoBuilt.map(C.project).filter(Boolean);
+    return `<section class="sec" id="brief-more" data-section="work" aria-labelledby="brief-more-h">
+        ${head('brief-more', 'also built', 'icon-faq')}
+        <div class="plates plates--small">${list.map((p, i) => plate(p, offset + i + 1, false)).join('')}</div>
+      </section>`;
+  }
+
+  function experience() {
+    return `<section class="sec" id="brief-experience" data-section="experience" aria-labelledby="brief-experience-h">
+        ${head('brief-experience', 'experience', 'icon-about')}
+        <ul class="jobs">
+          ${C.experiences
             .map(
-              (p, i) => `<li class="entry">
-                <span class="entry__n" aria-hidden="true">${String(offset + i + 1).padStart(2, '0')}</span>
-                <h3 class="entry__t">${esc(p.title)}</h3>
-                <p class="entry__y">${esc(p.year || '')}</p>
-                <p class="entry__d">${esc(p.preview || p.subtitle)}</p>
-                <p class="entry__s">${dotted(p.stack)}</p>
-                ${linksOf(p) ? `<p class="entry__l">${linksOf(p)}</p>` : ''}
-                ${noteOf(p) ? `<p class="entry__note">${esc(noteOf(p))}</p>` : ''}
+              (x) => `<li class="job" data-rise>
+                <div class="job__head">
+                  <h3 class="job__title"><span class="job__org">${esc(x.org)}</span><span class="job__slash" aria-hidden="true">/</span><span
+                    class="visually-hidden">, </span><span class="job__role">${esc(x.role)}</span></h3>
+                  <p class="job__when">${esc(x.date)}</p>
+                </div>
+                <ul class="job__did">${x.whatIDid.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>
+                ${x.measure ? measure(x.measure) : ''}
+                <p class="job__why">${esc(x.mattered)}</p>
+                <p class="job__tools"><span class="visually-hidden">Tools: </span>${dotted(x.tags)}</p>
               </li>`
             )
             .join('')}
-        </ol>
+        </ul>
       </section>`;
   }
-
-  /* 4 --------------------------------------------------------- experience */
-
-  function experience() {
-    const list = C.experiences;
-    return `<section class="sec sec--exp" id="brief-experience" aria-labelledby="brief-exp-h">
-        <h2 class="sec__h" id="brief-exp-h" data-ink="dot">experience</h2>
-        <div class="time">
-          <div class="time__marks" role="tablist" aria-label="Where I have worked" aria-orientation="vertical">
-            ${list
-              .map(
-                (x, i) => `<button class="mark" type="button" role="tab" id="brief-tab-${i}"
-                  aria-controls="brief-panel-${i}" aria-selected="${i === 0 ? 'true' : 'false'}"
-                  tabindex="${i === 0 ? '0' : '-1'}" data-tab="${i}">
-                  <span class="mark__org">${esc(x.org)}</span>
-                  <span class="mark__role">${esc(x.role)}</span>
-                  <span class="mark__when">${esc(x.date)}</span>
-                </button>`
-              )
-              .join('')}
-          </div>
-          <div class="time__body">
-            ${list
-              .map(
-                (x, i) => `<div class="post" role="tabpanel" id="brief-panel-${i}"
-                  aria-labelledby="brief-tab-${i}" tabindex="0"${i === 0 ? '' : ' hidden'}>
-                  <h3 class="post__role">${esc(x.role)}</h3>
-                  <p class="post__at">${esc(x.org)}<span class="post__when">${esc(x.date)}</span></p>
-                  <ul class="post__did">${x.whatIDid.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>
-                  <p class="post__key">why it mattered</p>
-                  <p class="post__why">${esc(x.mattered)}</p>
-                  <p class="post__tools">${dotted(x.tags)}</p>
-                </div>`
-              )
-              .join('')}
-          </div>
-        </div>
-      </section>`;
-  }
-
-  /* 5 ------------------------------------------------------------ toolbox */
-
-  const TIER = ['t1', 't2', 't3'];
 
   function toolbox() {
-    return `<section class="sec sec--tools" id="brief-skills" aria-labelledby="brief-skills-h">
-        <h2 class="sec__h" id="brief-skills-h">toolbox</h2>
-        <div class="tiers">
+    return `<section class="sec" id="brief-toolbox" data-section="toolbox" aria-labelledby="brief-toolbox-h">
+        ${head('brief-toolbox', 'toolbox', 'icon-links')}
+        <ul class="tools" data-rise>
           ${C.skills
             .map(
-              (g, i) => `<div class="tier tier--${TIER[i] || 't3'}">
-                <h3 class="tier__h">${i === 1 ? SPROUT : ''}<span>${esc(g.title)}</span></h3>
-                <p class="tier__list">${dotted(g.items)}</p>
-              </div>`
+              (g) => `<li class="tools__line"><span class="tools__k">${esc(g.title)}<span class="visually-hidden">: </span></span><span
+                class="tools__v">${dotted(g.items)}</span></li>`
             )
             .join('')}
-        </div>
-        <div class="ledger">
-          <div class="ledger__col ledger__col--edu">
-            <h3 class="ledger__h">education</h3>
-            <p class="ledger__lead">${esc(C.profile.degree.replace('&amp;', '&'))}</p>
-            <p class="ledger__note">${esc(C.profile.school)}, ${esc(C.profile.location)}</p>
-            <p class="ledger__note">${esc(C.profile.classYear)} &middot; GPA ${esc(C.profile.gpa)}</p>
+        </ul>
+      </section>`;
+  }
+
+  function education() {
+    const p = C.profile;
+    return `<section class="sec" id="brief-education" data-section="toolbox" aria-labelledby="brief-education-h">
+        ${head('brief-education', 'education + awards', 'the-brief')}
+        <div class="edu" data-rise>
+          <div>
+            <h3 class="edu__h">education</h3>
+            <p class="edu__lead">${esc(plain(p.degree))}</p>
+            ${p.minor ? `<p class="edu__minor">${esc(plain(p.minor))} minor</p>` : ''}
+            <p class="edu__note">${esc(p.school)}, ${esc(p.location)}</p>
+            <p class="edu__note">${esc(p.classYear)} &middot; GPA ${esc(p.gpa)}</p>
           </div>
-          <div class="ledger__col ledger__col--awards">
-            <h3 class="ledger__h">awards</h3>
-            <ul class="ledger__list">${C.about.awards.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
+          <div>
+            <h3 class="edu__h">awards</h3>
+            <ul class="edu__list">${C.about.awards.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
           </div>
         </div>
       </section>`;
   }
 
-  /* 6 ------------------------------------------------------------ closing */
-
-  function closing() {
-    return `<section class="sec sec--end" id="brief-contact" aria-labelledby="brief-contact-h">
-        <h2 class="sec__h" id="brief-contact-h">contact</h2>
-        <div class="end">
-          <div class="end__body">
-            <p class="end__say">${esc(C.contact.body)}</p>
-            <p class="end__mail"><a href="${esc(C.links.email)}" data-ink="mail">${esc(C.links.emailPlain)}</a></p>
-            <p class="end__do">
-              <a class="cta" href="${esc(C.links.email)}">email me</a>
-              <span class="hero__also">
-                ${C.links.resume ? quiet('résumé', C.links.resume) : ''}
-                ${quiet('GitHub', C.links.github)}
-                ${quiet('LinkedIn', C.links.linkedin)}
-              </span>
-            </p>
-          </div>
-          <div class="end__stamp" aria-hidden="true">
-            ${WHOOSH}
-            <picture>
-              <source type="image/webp" srcset="assets/images/opt/email.webp" />
-              <img src="assets/images/opt/email.png" width="300" height="300" alt="" decoding="async" loading="lazy" />
-            </picture>
+  /* the drawing closes the way a drawing does: with a block in the corner */
+  function contact() {
+    return `<section class="sec" id="brief-contact" data-section="contact" aria-labelledby="brief-contact-h">
+        ${head('brief-contact', 'contact', 'icon-contact')}
+        <div class="end" data-rise>
+          <p class="end__say">${esc(C.contact.body)}</p>
+          <div class="tb tb--end">
+            <dl class="tb__grid">
+              <div class="tb__cell tb__cell--mail"><dt>write to</dt><dd class="end__mail"><a href="${esc(C.links.email)}">${esc(
+      C.links.emailPlain
+    )}${SIG}</a></dd></div>
+              <div class="tb__cell tb__cell--else"><dt>elsewhere</dt><dd class="end__links">
+                ${C.links.resume ? qLink('résumé', C.links.resume) : ''}
+                ${qLink('GitHub', C.links.github)}
+                ${qLink('LinkedIn', C.links.linkedin)}
+              </dd></div>
+              <div class="tb__cell tb__cell--next"><dt>continues on</dt><dd class="end__links">
+                ${OTHERS.map(
+                  (id) =>
+                    `<a class="q-link" href="?mode=${id}"><span class="visually-hidden">Open </span>sheet ${sheetNo(
+                      id
+                    )}, ${esc(spec(id).name)}</a>`
+                ).join('')}
+              </dd></div>
+            </dl>
           </div>
         </div>
       </section>`;
   }
-
-  /* ---------------------------------------------------------------- page */
 
   function page() {
-    return `<header class="top" id="briefTop">
-        <div class="wrap top__in">
-          <a class="top__me" href="#briefMain">tabish navaid</a>
-          <nav class="top__nav" id="briefNav" aria-label="Sections">
-            <a href="#brief-work">work</a>
-            <a href="#brief-experience">experience</a>
-            <a href="#brief-skills">toolbox</a>
-            <a href="#brief-contact">contact</a>
-          </nav>
-          <span class="top__switch"></span>
-        </div>
-        <span class="top__progress" aria-hidden="true"><i id="briefProgress"></i></span>
-      </header>
-
-      <main class="wrap" id="briefMain" tabindex="-1">
-        <svg class="ink" id="briefInk" aria-hidden="true" focusable="false" width="0" height="0"></svg>
-        ${hero()}
-        ${work()}
-        ${index()}
-        ${experience()}
-        ${toolbox()}
-        ${closing()}
-      </main>
-
-      <footer class="foot">
-        <div class="wrap foot__in">
-          <p>This is the short version. There’s also a desktop with a cat on it, and a pixel town you can walk around.</p>
-          <p class="foot__modes">
-            <a href="?mode=meadow">meadow desktop</a>
-            <a href="?mode=field-trip">field trip</a>
-          </p>
-        </div>
-      </footer>`;
+    return `${DEFS}
+      <div class="sheet">
+        ${ruler()}
+        <main class="page" id="briefMain" tabindex="-1">
+          ${hero()}
+          ${titleBlock()}
+          ${work()}
+          ${more()}
+          ${experience()}
+          ${toolbox()}
+          ${education()}
+          ${contact()}
+        </main>
+        <footer class="sheet__foot">
+          <p>built by hand. no framework, no build step.</p>
+          <p>${esc(spec('brief').name)} &middot; sheet ${SHEET_OF}</p>
+        </footer>
+      </div>
+`;
   }
 
-  /* ------------------------------------------------------------ the ink */
-
-  const SVG_NS = 'http://www.w3.org/2000/svg';
+  /* ------------------------------------------------------------- lifecycle */
 
   let host = null;
   let controller = null;
   let observers = [];
+  let timers = {};
   let reduce = null;
-  /* one entry per stroke: the <path>, its length, and the two scroll
-     positions between which it draws itself */
-  let strokes = [];
-  let rebuildQueued = false;
+
+  const $ = (sel) => host.querySelector(sel);
 
   const on = (el, type, fn, opts) =>
     el && el.addEventListener(type, fn, Object.assign({ signal: controller.signal }, opts || {}));
 
-  const n1 = (v) => Math.round(v * 10) / 10;
+  const later = (name, fn, ms) => {
+    clearTimeout(timers[name]);
+    timers[name] = setTimeout(fn, ms);
+  };
 
-  function buildInk() {
-    rebuildQueued = false;
-    const main = host.querySelector('#briefMain');
-    const svg = host.querySelector('#briefInk');
-    if (!main || !svg) return;
+  /* 1 ---------------------------------------------------------- scroll spy */
 
-    const base = main.getBoundingClientRect();
-    const boxOf = (el) => {
-      if (!el) return null;
-      const b = el.getBoundingClientRect();
-      return { l: b.left - base.left, r: b.right - base.left, t: b.top - base.top, b: b.bottom - base.top };
-    };
-    const box = (sel) => boxOf(host.querySelector(sel));
+  function wireSpy() {
+    const links = Array.from(host.querySelectorAll('.mark'));
+    const sections = Array.from(host.querySelectorAll('section[data-section]'));
+    if (!links.length || !sections.length) return;
 
-    /* a heading's element box is the width of the column, not the width of
-       the word: the hook has to know where the letters actually stop */
-    const inkBox = (sel) => {
-      const el = host.querySelector(sel);
-      if (!el || !el.firstChild) return box(sel);
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const b = range.getBoundingClientRect();
-      range.detach && range.detach();
-      if (!b.width) return box(sel);
-      return { l: b.left - base.left, r: b.right - base.left, t: b.top - base.top, b: b.bottom - base.top };
+    let current;
+    const mark = (id) => {
+      if (id === current) return;
+      current = id;
+      links.forEach((a) => (a.dataset.spy === id ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
     };
 
-    const W = base.width;
-    /* the layout height, never scrollHeight: this svg is an absolutely placed
-       child of main, so measuring scrollHeight would feed its own size back in
-       and grow the document on every pass */
-    const H = base.height;
-    const railX = parseFloat(getComputedStyle(main).getPropertyValue('--rail-x')) || 22;
-    const edge = W - Math.max(8, railX * 0.6);
-
-    const out = [];
-    /* `from` and `to` are y positions on the page: the stroke is undrawn
-       above the first and complete below the second */
-    const add = (d, from, to) => { if (d) out.push({ d: d, from: from, to: to }); };
-
-    /* 1 — the hook around the name. It comes down the margin beside the first
-       letter, turns under the word, dips and lifts the way a pen does, and
-       flicks up towards the portrait rather than continuing anywhere. */
-    const name = inkBox('[data-ink="name"]');
-    const face = box('.hero__face');
-    if (name) {
-      const y = name.b + 13;
-      const x0 = Math.max(railX + 4, name.l - 34);
-      /* the flick stops short of the portrait instead of running behind it */
-      const roomTo = face && face.l > name.r ? face.l - 22 : name.r + 40;
-      /* on a narrow page the flick has to stay on the paper */
-      const x1 = Math.max(name.l + 40, Math.min(name.r + 30, roomTo, edge - 32));
-      const w = x1 - x0;
-      const yIn = Math.max(4, name.t + (name.b - name.t) * 0.34);
-      add(
-        `M ${n1(x0 - 12)} ${n1(yIn)} ` +
-          `C ${n1(x0 - 15)} ${n1(yIn + (y - yIn) * 0.55)}, ${n1(x0 - 13)} ${n1(y - 12)}, ${n1(x0)} ${n1(y - 6)} ` +
-          `C ${n1(x0 + w * 0.11)} ${n1(y + 6)}, ${n1(x0 + w * 0.3)} ${n1(y + 8)}, ${n1(x0 + w * 0.52)} ${n1(y + 2.5)} ` +
-          `C ${n1(x0 + w * 0.72)} ${n1(y - 2)}, ${n1(x0 + w * 0.88)} ${n1(y - 3)}, ${n1(x1)} ${n1(y + 3)} ` +
-          `C ${n1(x1 + 24)} ${n1(y + 9)}, ${n1(x1 + 27)} ${n1(y - 15)}, ${n1(x1 + 2)} ${n1(y - 23)}`,
-        y - 230,
-        y - 30
-      );
-    }
-
-    /* 2 — the lead-in. It leaves the hero out to the right of the type, swings
-       back down into the margin and lands on the "selected work" dot. Short,
-       and going somewhere. */
-    const workHead = box('#brief-work-h');
-    if (workHead) {
-      const y2 = workHead.t + 22;
-      const below = box('.hero__body') || box('.hero') || { b: 0 };
-      const y1 = Math.max(below.b + 24, y2 - 150);
-      const drop = y2 - y1;
-      const reach = Math.min(150, Math.max(60, drop * 1.1));
-      add(
-        `M ${n1(railX + reach)} ${n1(y1)} ` +
-          `C ${n1(railX + reach * 0.42)} ${n1(y1 + drop * 0.06)}, ` +
-          `${n1(railX - 2)} ${n1(y1 + drop * 0.34)}, ${n1(railX)} ${n1(y2)}`,
-        y1 - 150,
-        y2
-      );
-    }
-
-    /* 3 — the rule the project navigation hangs from. One line, the width of
-       the picture above it, so the controls belong to the project. */
-    const rail = box('.sec--work .rail');
-    if (rail) {
-      const y = rail.t;
-      add(
-        `M ${n1(railX)} ${n1(y + 4)} ` +
-          `C ${n1(railX + (edge - railX) * 0.22)} ${n1(y - 2)}, ` +
-          `${n1(railX + (edge - railX) * 0.64)} ${n1(y + 3)}, ${n1(edge)} ${n1(y - 1)}`,
-        y - 150,
-        y + 30
-      );
-    }
-
-    /* 4 — the timeline. The one place the line is structure: it runs from the
-       first stop to the last, and every organisation sits on it. */
-    const expHead = box('#brief-exp-h');
-    const marks = Array.from(host.querySelectorAll('.mark'));
-    if (marks.length > 1) {
-      const dotY = (el) => {
-        const b = boxOf(el);
-        const cs = getComputedStyle(el, '::before');
-        return b.t + (parseFloat(cs.top) || 18) + 4.5;
-      };
-      /* it enters the section at the heading dot and becomes the timeline */
-      const yA = expHead ? expHead.t + 22 : dotY(marks[0]);
-      const yB = dotY(marks[marks.length - 1]);
-      const span = yB - yA;
-      if (span > 20) {
-        add(
-          `M ${n1(railX)} ${n1(yA)} ` +
-            `C ${n1(railX + 3)} ${n1(yA + span * 0.34)}, ${n1(railX - 3)} ${n1(yA + span * 0.68)}, ` +
-            `${n1(railX)} ${n1(yB)}`,
-          yA - 120,
-          yB
-        );
+    /* Sections are spaced with padding rather than margin, so they touch: a
+       thin band 40% of the way down the screen always sits inside exactly one
+       of them once the hero has scrolled past. The last section can be too
+       short to ever reach that band, so the bottom of the page counts as it. */
+    const inBand = new Set();
+    const settle = () => {
+      const doc = document.documentElement;
+      if (window.scrollY > 0 && window.innerHeight + window.scrollY >= doc.scrollHeight - 4) {
+        mark(sections[sections.length - 1].dataset.section);
+        return;
       }
-    }
-
-    /* 5 — the last thing it does is underline the address */
-    const mail = box('[data-ink="mail"]');
-    if (mail) {
-      const y = mail.b + 5;
-      const x0 = Math.max(railX, mail.l - 44);
-      const x1 = Math.min(edge, mail.r + 12);
-      const w = x1 - x0;
-      if (w > 60) {
-        add(
-          `M ${n1(x0)} ${n1(y + 9)} ` +
-            `C ${n1(x0 + w * 0.1)} ${n1(y - 2)}, ${n1(x0 + w * 0.3)} ${n1(y + 6)}, ${n1(x0 + w * 0.52)} ${n1(y + 1)} ` +
-            `S ${n1(x0 + w * 0.85)} ${n1(y + 6)}, ${n1(x1)} ${n1(y + 1)}`,
-          y - 200,
-          y - 20
-        );
-      }
-    }
-
-    svg.setAttribute('width', String(Math.max(1, Math.round(W))));
-    svg.setAttribute('height', String(Math.max(1, Math.round(H))));
-
-    /* rebuild rather than patch: the strokes are cheap and the alternative is
-       two sets of geometry disagreeing about the same page */
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-    strokes = out.map((s) => {
-      const el = document.createElementNS(SVG_NS, 'path');
-      el.setAttribute('d', s.d);
-      el.setAttribute('fill', 'none');
-      el.setAttribute('stroke', 'currentColor');
-      el.setAttribute('stroke-width', '2.5');
-      el.setAttribute('stroke-linecap', 'round');
-      el.setAttribute('stroke-linejoin', 'round');
-      svg.appendChild(el);
-      const len = el.getTotalLength ? el.getTotalLength() : 0;
-      el.style.strokeDasharray = len ? String(len) : 'none';
-      el.style.strokeDashoffset = reduce.matches || !len ? '0' : String(len);
-      return { el: el, len: len, from: s.from, to: s.to };
-    });
-
-    if (!reduce.matches) drawInk();
-
-    /* the two section dots sit exactly where a stroke arrives */
-    host.querySelectorAll('[data-ink="dot"]').forEach((h) => {
-      h.style.setProperty('--dot-x', `${railX}px`);
-    });
-
-    /* the hand-drawn ring is one path; its length is the same in every slide */
-    const ring = host.querySelector('.idx__ring path');
-    if (ring && ring.getTotalLength) {
-      host.style.setProperty('--ring-len', String(Math.ceil(ring.getTotalLength())));
-    }
-  }
-
-  function drawInk() {
-    if (!host || !strokes.length) return;
-    const main = host.querySelector('#briefMain');
-    if (!main) return;
-    if (reduce.matches) {
-      strokes.forEach((s) => { s.el.style.strokeDashoffset = '0'; });
-      return;
-    }
-    const doc = document.documentElement;
-    /* measured every time rather than cached: a stale origin is the one way
-       this can silently stop tracking the page */
-    const top = main.getBoundingClientRect().top + doc.scrollTop;
-    const line = doc.scrollTop + window.innerHeight * 0.86 - top;
-    strokes.forEach((s) => {
-      const span = s.to - s.from;
-      const p = span <= 0 ? (line >= s.to ? 1 : 0) : (line - s.from) / span;
-      const clamped = p < 0 ? 0 : p > 1 ? 1 : p;
-      s.el.style.strokeDashoffset = String(s.len * (1 - clamped));
-    });
-  }
-
-  function queueInk() {
-    if (rebuildQueued) return;
-    rebuildQueued = true;
-    requestAnimationFrame(() => { if (host) buildInk(); });
-  }
-
-  /* ----------------------------------------------------------- carousel */
-
-  let at = 0;
-  let slides = [];
-  let steps = [];
-
-  const focusables = (el) => el.querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])');
-
-  function paintSlides(say) {
-    const track = host.querySelector('.stage__track');
-    if (!track) return;
-    track.style.transform = `translateX(${-at * 100}%)`;
-    slides.forEach((el, i) => {
-      const live = i === at;
-      el.classList.toggle('is-on', live);
-      if ('inert' in el) el.inert = !live;
-      el.setAttribute('aria-hidden', live ? 'false' : 'true');
-      focusables(el).forEach((f) => (live ? f.removeAttribute('tabindex') : f.setAttribute('tabindex', '-1')));
-    });
-    steps.forEach((s, i) => {
-      s.setAttribute('aria-selected', i === at ? 'true' : 'false');
-      s.tabIndex = i === at ? 0 : -1;
-    });
-    const count = host.querySelector('#briefCount');
-    if (count) count.textContent = String(at + 1).padStart(2, '0');
-    const prev = host.querySelector('[data-step="-1"]');
-    const next = host.querySelector('[data-step="1"]');
-    if (prev) prev.disabled = at === 0;
-    if (next) next.disabled = at === slides.length - 1;
-    const stage = host.querySelector('.stage');
-    if (stage) stage.dataset.project = slides[at] ? slides[at].dataset.project : '';
-    if (say) {
-      const status = host.querySelector('#briefSlideStatus');
-      if (status) status.textContent = slides[at].getAttribute('aria-label') || '';
-    }
-  }
-
-  function goTo(i, opts) {
-    const next = Math.max(0, Math.min(slides.length - 1, i));
-    if (next === at) return;
-    at = next;
-    paintSlides(true);
-    if (opts && opts.focusStep && steps[at]) steps[at].focus();
-  }
-
-  function wireStage() {
-    const stage = host.querySelector('.stage');
-    if (!stage) return;
-    slides = Array.from(stage.querySelectorAll('.slide'));
-    steps = Array.from(stage.querySelectorAll('.step'));
-    if (!slides.length) return;
-    paintSlides(false);
-
-    on(stage, 'click', (e) => {
-      const move = e.target.closest('[data-step]');
-      if (move) { goTo(at + Number(move.dataset.step)); return; }
-      const go = e.target.closest('[data-go]');
-      if (go) goTo(Number(go.dataset.go));
-    });
-
-    on(stage, 'keydown', (e) => {
-      const inSteps = !!e.target.closest('.rail__steps');
-      if (e.key === 'ArrowRight') { e.preventDefault(); goTo(at + 1, { focusStep: inSteps }); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(at - 1, { focusStep: inSteps }); }
-      else if (inSteps && e.key === 'Home') { e.preventDefault(); goTo(0, { focusStep: true }); }
-      else if (inSteps && e.key === 'End') { e.preventDefault(); goTo(slides.length - 1, { focusStep: true }); }
-    });
-
-    /* horizontal drags only, so a vertical scroll is never taken away */
-    const view = stage.querySelector('.stage__view');
-    let x0 = 0;
-    let y0 = 0;
-    let tracking = false;
-    on(view, 'pointerdown', (e) => {
-      if (e.pointerType === 'mouse') return;
-      tracking = true; x0 = e.clientX; y0 = e.clientY;
-    });
-    on(view, 'pointerup', (e) => {
-      if (!tracking) return;
-      tracking = false;
-      const dx = e.clientX - x0;
-      const dy = e.clientY - y0;
-      if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.6) goTo(at + (dx < 0 ? 1 : -1));
-    });
-    on(view, 'pointercancel', () => { tracking = false; });
-  }
-
-  /* --------------------------------------------------------------- tabs */
-
-  function wireTabs() {
-    const marks = host.querySelector('.time__marks');
-    if (!marks) return;
-    const tabs = Array.from(marks.querySelectorAll('.mark'));
-    const posts = Array.from(host.querySelectorAll('.post'));
-
-    const select = (i, focus) => {
-      tabs.forEach((t, k) => {
-        t.setAttribute('aria-selected', k === i ? 'true' : 'false');
-        t.tabIndex = k === i ? 0 : -1;
-      });
-      posts.forEach((p, k) => { p.hidden = k !== i; });
-      if (focus) tabs[i].focus();
-      if (tabs[i].scrollIntoView) tabs[i].scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      queueInk();
+      const hit = sections.filter((s) => inBand.has(s));
+      mark(hit.length ? hit[hit.length - 1].dataset.section : null);
     };
 
-    on(marks, 'click', (e) => {
-      const tab = e.target.closest('.mark');
-      if (tab) select(tabs.indexOf(tab), false);
-    });
-
-    on(marks, 'keydown', (e) => {
-      const i = tabs.indexOf(document.activeElement.closest('.mark'));
-      if (i < 0) return;
-      let n = -1;
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') n = (i + 1) % tabs.length;
-      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
-      else if (e.key === 'Home') n = 0;
-      else if (e.key === 'End') n = tabs.length - 1;
-      if (n < 0) return;
-      e.preventDefault();
-      select(n, true);
-    });
-  }
-
-  /* ------------------------------------------------- header and progress */
-
-  function wireTop() {
-    const top = host.querySelector('#briefTop');
-    const bar = host.querySelector('#briefProgress');
-    const nav = host.querySelector('#briefNav');
-    const heroEl = host.querySelector('.hero');
-    if (!top || !bar) return;
-
-    const links = nav ? Array.from(nav.querySelectorAll('a')) : [];
-    const marks = links
-      .map((a) => ({ a: a, el: host.querySelector(a.getAttribute('href')) }))
-      .filter((m) => m.el);
-    let current = null;
-
-    /* the section being read is the last one past a line 45% down the screen,
-       and the final one once the page bottoms out, since nothing below it can
-       ever reach that line */
-    const activeLink = (scrollTop, max) => {
-      if (!marks.length) return null;
-      if (max > 0 && scrollTop >= max - 4) return marks[marks.length - 1].a;
-      const line = window.innerHeight * 0.45;
-      let found = null;
-      marks.forEach((m) => { if (m.el.getBoundingClientRect().top <= line) found = m.a; });
-      return found;
-    };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? inBand.add(e.target) : inBand.delete(e.target)));
+          settle();
+        },
+        { rootMargin: '-40% 0px -59% 0px' }
+      );
+      sections.forEach((s) => io.observe(s));
+      observers.push(io);
+    }
 
     let queued = false;
-    const paint = () => {
-      queued = false;
-      const doc = document.documentElement;
-      const y = doc.scrollTop || document.body.scrollTop;
-      const max = doc.scrollHeight - window.innerHeight;
-      bar.style.transform = `scaleX(${max > 0 ? Math.min(1, Math.max(0, y / max)) : 0})`;
-      if (heroEl) top.classList.toggle('is-tight', y > heroEl.offsetHeight * 0.6);
-      drawInk();
-      const next = activeLink(y, max);
-      if (next !== current) {
-        current = next;
-        links.forEach((l) => (l === next ? l.setAttribute('aria-current', 'true') : l.removeAttribute('aria-current')));
-      }
-    };
-
-    paint();
-    on(window, 'scroll', () => {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(paint);
-    }, { passive: true });
-    on(window, 'resize', () => { paint(); queueInk(); }, { passive: true });
+    on(
+      window,
+      'scroll',
+      () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          if (host) settle();
+        });
+      },
+      { passive: true }
+    );
   }
 
-  /* ---------------------------------------------------------- lifecycle */
+  /* 2 ---------------------------------------------------------------- rise */
+
+  /* Nothing is ever hidden while it waits. A block stays exactly as laid out
+     until the observer says it is arriving, and only then plays a short
+     animation that starts faded and ends at its ordinary state. If the
+     observer never fires, the block was simply visible all along. Blocks
+     already on screen when the page opens are left alone. */
+  function wireRise() {
+    if (reduce.matches || !('IntersectionObserver' in window)) return;
+    const seen = new WeakSet();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          const el = e.target;
+          if (!seen.has(el)) {
+            seen.add(el);
+            if (e.isIntersecting) io.unobserve(el);
+            return;
+          }
+          if (!e.isIntersecting) return;
+          io.unobserve(el);
+          if (reduce.matches || document.visibilityState !== 'visible') return;
+          const done = (ev) => {
+            if (ev && ev.target !== el) return;
+            el.classList.remove('is-rising');
+            el.removeEventListener('animationend', done);
+          };
+          el.classList.add('is-rising');
+          el.addEventListener('animationend', done);
+          later('rise', () => host && host.querySelectorAll('.is-rising').forEach((r) => r.classList.remove('is-rising')), 1200);
+        });
+      },
+      /* a hair below the fold, so the switch to faded happens off screen */
+      { rootMargin: '0px 0px 24px 0px' }
+    );
+    host.querySelectorAll('[data-rise]').forEach((el) => io.observe(el));
+    observers.push(io);
+  }
+
+  /* 3 ----------------------------------------------------------- signature */
+
+  /* The underline is drawn in the stylesheet. When the address is about to
+     scroll into view, a one-off animation re-inks it from nothing; if the
+     address was already on screen, or motion is reduced, it just stays drawn. */
+  function wireSignature() {
+    const sig = $('.sig');
+    if (!sig || reduce.matches || !('IntersectionObserver' in window)) return;
+    let first = true;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const e = entries[entries.length - 1];
+        if (first) {
+          first = false;
+          if (e.isIntersecting) {
+            io.disconnect();
+            return;
+          }
+        }
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        if (reduce.matches || document.visibilityState !== 'visible') return;
+        sig.classList.add('is-inking');
+      },
+      { rootMargin: '0px 0px 40px 0px' }
+    );
+    io.observe(sig);
+    observers.push(io);
+  }
 
   function start(mountPoint, opts) {
     host = mountPoint;
     controller = new AbortController();
     observers = [];
-    strokes = [];
-    at = 0;
+    timers = {};
     reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     host.innerHTML = page();
 
-    const slot = host.querySelector('.top__switch');
-    if (slot) slot.appendChild(window.Modes.switchControl('switch-profile--brief'));
+    const slot = $('.ruler__switch');
+    if (slot && window.Modes) slot.appendChild(window.Modes.switchControl('switch-profile--brief'));
 
-    wireStage();
-    wireTabs();
-    wireTop();
-
+    wireSpy();
     window.scrollTo(0, 0);
-    buildInk();
+    wireRise();
+    wireSignature();
 
-    /* the strokes are measured from the finished layout, so anything that
-       changes that layout has to ask for them again */
-    if ('ResizeObserver' in window) {
-      const ro = new ResizeObserver(queueInk);
-      ro.observe(host.querySelector('#briefMain'));
-      observers.push(ro);
-    }
-    host.querySelectorAll('img').forEach((img) => {
-      if (!img.complete) on(img, 'load', queueInk);
-    });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => host && queueInk());
-
-    /* set now, not in a frame: an entrance is a nicety, legibility is not */
-    if (!reduce.matches && document.visibilityState === 'visible') host.classList.add('is-fresh');
-
-    if (opts && opts.focus) host.querySelector('#briefMain').focus({ preventScroll: true });
+    /* Moving focus to the content only helps somebody who just picked this
+       profile: the control they used has gone, so focus needs a new home.
+       modes.js asks for focus on a cold load too, and there it would skip the
+       skip link and the ruler, so the first Tab would land halfway down the
+       page. go() is the only path that records { mode } in history, and a
+       reload keeps that state, so a reload is treated as a cold load. */
+    const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    const arrived = history.state && history.state.mode === 'brief' && !(nav && nav.type === 'reload');
+    if (opts && opts.focus && arrived) $('#briefMain').focus({ preventScroll: true });
   }
 
   function stop() {
-    rebuildQueued = false;
     if (controller) controller.abort();
     controller = null;
     observers.forEach((o) => o.disconnect());
     observers = [];
-    slides = [];
-    steps = [];
-    strokes = [];
-    if (host) {
-      host.classList.remove('is-fresh');
-      host.style.removeProperty('--ring-len');
-      host.innerHTML = '';
-    }
+    Object.keys(timers).forEach((k) => clearTimeout(timers[k]));
+    timers = {};
+    if (host) host.innerHTML = '';
     host = null;
   }
 
