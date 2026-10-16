@@ -3,13 +3,17 @@
 The site boots like a small computer and asks *who's logging in?* Three
 profiles, one set of facts:
 
-- **The Brief** — a conventional, scrollable portfolio. Name, fit, proof,
-  links.
-- **Meadow Desktop** — the original. A single-screen desktop in a meadow;
-  everything opens in windows launched from five illustrated icons.
-- **Field Trip** — a top-down pixel village you walk around. Nine doors open
-  and hold part of the same résumé; the school, the cinema, the cottages and
-  the caravan are scenery, so an open door means something.
+- **The Brief** (sheet 1 of 3). A one-page portfolio drawn as a technical
+  drawing: a bordered sheet on graph paper, a ruler across the top that is
+  also the navigation, a title block with the particulars, numbered figures,
+  dimension lines for before-and-after numbers, and notes out in the margin
+  on leader lines. Always light, never reads the day/night system. The
+  title block and the footer are the way across to the other two sheets.
+- **Meadow Desktop** (sheet 2 of 3). The original. A single-screen desktop in
+  a meadow; everything opens in windows launched from five illustrated icons.
+- **Field Trip** (sheet 3 of 3). A top-down pixel village you walk around.
+  Nine doors open and hold part of the same résumé; the school, the cinema,
+  the cottages and the caravan are scenery, so an open door means something.
 
 No framework, no build step, no dependencies.
 
@@ -41,14 +45,14 @@ tools/                     the asset build script
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`. Opening `index.html` directly also works —
+Then open `http://localhost:8000`. Opening `index.html` directly also works:
 there are no modules and no fetches.
 
 ## Modes
 
 The mode lives in the URL. `?mode=brief`, `?mode=meadow` and `?mode=field-trip`
 go straight in; the bare root shows the chooser. The last profile is
-remembered only to pre-select it on the chooser — a direct URL always wins, and
+remembered only to pre-select it on the chooser. A direct URL always wins, and
 nobody gets trapped in a mode. Every mode carries a small **switch profile**
 control that returns to the chooser without clearing preferences.
 
@@ -62,8 +66,19 @@ hidden, when a panel is open, and when the mode is switched away.
 **One content model.** `js/content.js` is the only place a fact is written.
 The Brief, the desktop windows and the town panels are three renderers over the
 same objects. A missing fact is `null` with a note, so the action disappears
-instead of becoming a dead link — set `LINKS.resume` to a path and every résumé
+instead of becoming a dead link. Set `LINKS.resume` to a path and every résumé
 action on the site appears.
+
+**The Brief is a drawing.** Every border is a 2px ink box pushed a pixel or
+two off true by one fixed-seed SVG filter, so the edges read as drawn while the
+words inside stay sharp. Hierarchy comes only from size and space: Architects
+Daughter ships one weight, and `font-synthesis: none` stops the browser faking
+a bold. The ruler at the top is the navigation and the scroll spy, a project's
+reasoning sits in a native `<details>` so it opens from the keyboard with no
+script, and the sheet opts out of `--theme-progress` entirely (the meadow
+leaves live colours on `<html>`, so each of the six sketchbook colours is
+written out rather than inherited). Each project's missing piece is a margin
+note on a leader line, not small print.
 
 **Meadow Desktop is one screen.** `html, body { overflow: hidden }`, the
 desktop window centred in the viewport, long content scrolling inside its own
@@ -83,8 +98,8 @@ never create a second page. Reload lands back in the same window; Escape and
 the close button clear them.
 
 **The bus.** A pixel bus drives into the meadow, waits by its sign, and goes on.
-Clicking it opens Field Trip. It is an explicit state machine — arriving,
-parked, departing, cooldown — driven by wall-clock time, so a tab switch cannot
+Clicking it opens Field Trip. It is an explicit state machine (arriving,
+parked, departing, cooldown) driven by wall-clock time, so a tab switch cannot
 strand it: its speech bubble goes before it does, its click target is disabled
 whenever it is not standing at the stop, and reduced motion parks it for good.
 It is the only pixel art on the desktop, and it is there to explain why a
@@ -101,7 +116,7 @@ when outdoor coordinates move and old saved positions are discarded rather than
 spawning somebody inside a hedge.
 
 **Buildings are places, not buttons.** A door loads that building's interior
-as a scene — same engine, same collision, camera and controls — and the player
+as a scene (same engine, same collision, camera and controls), and the player
 walks around it. Work is found by inspecting a terminal, a whiteboard, a wall
 map or a filing cabinet, not by opening a door. Rooms are declared as data in
 `interiors.js` (layout) and `content.js` (what each object says), joined by id,
@@ -127,15 +142,15 @@ come from a fixed seed, so the scene is identical on every load.
 ## Assets
 
 Original art stays in `assets/images/`. `assets/images/opt/` holds the
-derivatives the page loads — cropped to the drawing, resized to display size,
+derivatives the page loads: cropped to the drawing, resized to display size,
 re-encoded. The two large cat animations went from 2.4 MB and 3.9 MB of GIF to
 about 11 KB and 19 KB of animated WebP.
 
 The `.gif` beside each cat is the `<picture>` fallback, and it is no longer the
 original: the originals were 1000 px square with up to 51 frames, which is 6.4 MB
 served to nobody, since every browser that understands `<picture>` also
-understands WebP. Each fallback is now rebuilt from its own WebP — same 300 px
-box, same frames, same timing, transparency intact — for 252 KB the whole set.
+understands WebP. Each fallback is now rebuilt from its own WebP (same 300 px
+box, same frames, same timing, transparency intact), for 252 KB the whole set.
 Rebuild them from `assets/images/opt/cat-*.webp` if the art changes.
 
 Field Trip's pixel art is cut from purchased packs by **shubibubi** and the

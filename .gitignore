@@ -2,6 +2,7 @@
 node_modules/
 .env
 .vscode/
+.claude/
 
 # Purchased pixel-art source packs. Licensed for use, not for redistribution,
 # so the archives stay local and never reach the deployed site. Only the small
