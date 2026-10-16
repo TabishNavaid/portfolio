@@ -124,7 +124,7 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'emberwing',
-      state: 'deployed, in the lobby on 5 November',
+      state: 'debuts 5 November at Symphonicon',
       kind: 'lobby installation',
       openLabel: 'why nobody can lose',
       title: 'Emberwing: The Way Home',
@@ -143,7 +143,7 @@ window.PORTFOLIO = (function () {
         'A light cursor fed by a motion-capture lantern prop, a mouse, or a phone, with corner calibration for the rig',
         'A flock that accumulates over the evening, with every dragon that gets home leaving a ribbon in the aurora',
         'An operator layer: fullscreen, scene skip, a debug overlay, reduced motion, and a QR code so a queue can play on their own phones',
-        'A smoke test that checks the deployed site actually plays'
+        'A smoke test that checks the preview build still plays end to end'
       ],
       techStack: 'JavaScript, Canvas 2D, Vite, WebSockets, GitHub Actions, GitHub Pages',
       productDecisions: [
@@ -166,9 +166,11 @@ window.PORTFOLIO = (function () {
         alt: 'The Emberwing attract screen: a pixel lighthouse sweeping its beam over a stormy sea at a small pink dragon, beside three level rings reading Hatchling, Flier and Storm Rider.'
       },
       links: [
-        { label: 'Play it', href: 'https://tabishnavaid.github.io/emberwing/' },
+        { label: 'Preview build', href: 'https://tabishnavaid.github.io/emberwing/' },
         { label: 'GitHub', href: 'https://github.com/TabishNavaid/emberwing' }
-      ]
+      ],
+      missing:
+        'Not released. It debuts in the Cordiner Hall lobby before the Walla Walla Symphony’s Symphonicon on 5 November, and the link above is the preview build, not a finished release.'
     },
     {
       id: 'sos-lost-found',
@@ -221,7 +223,6 @@ window.PORTFOLIO = (function () {
       kind: 'audio engine',
       openLabel: 'how rendering got six times faster',
       title: 'Porchlight',
-      featured: true,
       year: '2026',
       subtitle: 'Generative lofi that runs in the browser and writes hour-long WAV files from a seed.',
       measure: { from: '3x realtime', to: '19.6x', label: 'render speed' },
@@ -625,8 +626,8 @@ window.PORTFOLIO = (function () {
   const BRIEF = {
     lede:
       'I like building web tools for problems that are already a bit messy, like a campus lost-and-found where you can prove something’s yours without handing a stranger your number, or a vacancy map for downtown Walla Walla. I also work on Whitman’s thousand-page website, and I’ve been building a lofi music generator in my spare time.',
-    featured: ['first-seen', 'sos-lost-found', 'porchlight', 'emberwing', 'walla-walla-map'],
-    alsoBuilt: ['pond-hopper', 'aakritam', 'this-site', 'bloom', 'restaurant-management']
+    featured: ['first-seen', 'sos-lost-found', 'emberwing', 'walla-walla-map'],
+    alsoBuilt: ['porchlight', 'pond-hopper', 'aakritam', 'this-site', 'bloom', 'restaurant-management']
   };
 
   /* --- field trip: the town ----------------------------------------------- */
@@ -753,7 +754,7 @@ window.PORTFOLIO = (function () {
           },
           workbench: {
             name: 'the workbench',
-            panel: { title: 'what’s on the bench', sections: [{ kind: 'projects', ids: ['sos-lost-found', 'porchlight', 'pond-hopper'], lens: 'engineering' }] }
+            panel: { title: 'what’s on the bench', sections: [{ kind: 'projects', ids: ['first-seen', 'emberwing', 'sos-lost-found', 'porchlight', 'pond-hopper'], lens: 'engineering' }] }
           },
           whiteboard: {
             name: 'the whiteboard',
