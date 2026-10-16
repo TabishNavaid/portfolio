@@ -145,7 +145,7 @@ html[data-mode='brief'] .skip-link:focus-visible {
 #briefRoot .brief-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* stroked line work shares one pen */
-#briefRoot :is(.mark__under, .hook__chev, .out, .sig, .checked__ring, .reach__icon--drawn) path {
+#briefRoot :is(.mark__under, .hook__chev, .out, .sig, .reach__icon--drawn) path {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -366,7 +366,7 @@ html[data-mode='brief'] .skip-link:focus-visible {
   gap: 1.5px;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
   grid-template-areas:
-    'by      by      check'
+    'by      by      by'
     'drawing school  year'
     'sheet   sheet   sheet'
     'reach   reach   reach';
@@ -379,7 +379,6 @@ html[data-mode='brief'] .skip-link:focus-visible {
 #briefRoot .tb__big { font-size: clamp(21px, 2.6vw, 25px); line-height: 1.4; }
 
 #briefRoot .tb__cell--by { grid-area: by; }
-#briefRoot .tb__cell--check { grid-area: check; }
 #briefRoot .tb__cell--sheet { grid-area: sheet; }
 #briefRoot .tb__cell--drawing { grid-area: drawing; }
 #briefRoot .tb__cell--school { grid-area: school; }
@@ -430,17 +429,6 @@ html[data-mode='brief'] .skip-link:focus-visible {
   text-decoration: underline 1.5px var(--pencil);
   text-underline-offset: 4px;
 }
-
-/* --- checked by: the cat, at its desk in the corner of the drawing */
-
-#briefRoot .tb__check { display: flex; align-items: center; gap: 12px; }
-
-#briefRoot .checked { display: flex; align-items: center; gap: 12px; }
-#briefRoot .checked__seat { position: relative; display: block; flex: none; width: 58px; height: 58px; }
-#briefRoot .checked__ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-#briefRoot .checked__ring path { stroke: var(--ink); stroke-width: 2; }
-#briefRoot .checked__art { position: absolute; top: 5px; left: 7px; width: 44px; height: 44px; }
-#briefRoot .checked__name { font-size: 17px; line-height: 1.4; }
 
 /* --------------------------------------------------------------- sections */
 
@@ -501,6 +489,31 @@ html[data-mode='brief'] .skip-link:focus-visible {
 #briefRoot .plates--small .plate__body { padding: 18px 24px 22px; }
 
 #briefRoot .plate__figure { margin-bottom: 24px; }
+
+/* A thumbnail instead, on the smaller plates: same picture, a quarter of the
+   room. One column until there is width for two, so the shot never gets
+   squeezed into a stamp on a phone. */
+@media (min-width: 620px) {
+  #briefRoot .plate--thumb .plate__body {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 24px;
+  }
+
+  /* The picture holds the first column for the whole plate; everything else
+     stacks down the second. Without both of these the grid auto-places the
+     title, the question, the stack and the links into alternate columns, and
+     the plate stops reading top to bottom. */
+  #briefRoot .plate--thumb .plate__figure {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+    margin-bottom: 0;
+  }
+
+  #briefRoot .plate--thumb .plate__body > :not(.plate__figure) { grid-column: 2; }
+}
 #briefRoot .plate__img { display: block; border: 1.5px solid var(--ink); }
 
 #briefRoot .plate__title { font-size: clamp(22px, 2.8vw, 27px); line-height: 1.36; }
@@ -860,7 +873,6 @@ html[data-mode='brief'] .skip-link:focus-visible {
       'by      by'
       'drawing year'
       'school  school'
-      'check   check'
       'sheet   sheet'
       'reach   reach';
   }

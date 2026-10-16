@@ -44,11 +44,6 @@ window.Brief = (function () {
     `<picture><source type="image/webp" srcset="${OPT}${name}.webp" />` +
     `<img class="${cls}" src="${OPT}${name}.png" width="${size || 360}" height="${size || 360}" alt="" decoding="async" /></picture>`;
 
-  /* the cat has no PNG derivative; its fallback is the rebuilt GIF */
-  const catPic = (cls) =>
-    `<picture><source type="image/webp" srcset="${OPT}cat-morning-no-music.webp" />` +
-    `<img class="${cls}" src="assets/images/cat-morning-no-music.gif" width="300" height="300" alt="" decoding="async" /></picture>`;
-
   /* --- the set of sheets ---------------------------------------------------
      The three profiles are one numbered set, in the chooser's order. The
      fallbacks only matter if modes.js has not registered them. */
@@ -104,12 +99,6 @@ window.Brief = (function () {
     'C 19.6 28.7, 13.4 28.3, 8 28.6 C 8.3 20, 7.9 11.4, 8.2 3.6 Z" />' +
     '<path d="M 20.4 3.8 C 20.2 5.6, 20.5 7.2, 20.3 8.8 C 22 8.7, 23.6 8.9, 25.2 8.7" />' +
     '<path d="M 11.8 13.6 C 15 13.4, 18 13.7, 21.2 13.5 M 11.8 17.8 C 15 17.6, 18.2 17.9, 21.4 17.7 M 11.8 22 C 13.8 21.9, 15.6 22.1, 17.6 22" />' +
-    '</svg>';
-
-  /* the ring the cat sits in, over in the title block */
-  const RING =
-    '<svg class="checked__ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false">' +
-    '<path d="M 32 4.2 C 47.6 3.6, 60.2 15.4, 59.8 31.6 C 59.4 47.8, 47 60.4, 31.2 59.8 C 15.6 59.2, 4 46.6, 4.4 31 C 4.8 16.4, 16.2 4.8, 30.4 4.4" />' +
     '</svg>';
 
   /* the signature under the email address: one pass, and a flick at the end */
@@ -169,14 +158,6 @@ window.Brief = (function () {
       )
       .join('');
 
-  /* The cat signs the drawing. Meadow Desktop has it down as quality
-     assurance, so it is the one who checked this sheet. */
-  const checkedBy = () =>
-    `<span class="checked">
-          <span class="checked__seat">${RING}${catPic('checked__art')}</span>
-          <span class="checked__name">the cat</span>
-        </span>`;
-
   /* The way off this sheet. Understated on purpose: the thumbnail the chooser
      uses, the sheet number, and the name. The scribble is only drawn on hover
      and on focus, and the focus ring comes from the one :focus-visible rule
@@ -207,7 +188,6 @@ window.Brief = (function () {
     return `<div class="tb">
         <dl class="tb__grid">
           <div class="tb__cell tb__cell--by"><dt>drawn by</dt><dd class="tb__big">${esc(p.name)}</dd></div>
-          <div class="tb__cell tb__cell--check"><dt>checked by</dt><dd class="tb__check">${checkedBy()}</dd></div>
           <div class="tb__cell tb__cell--sheet">
             <dt>sheet</dt>
             <dd>
@@ -266,6 +246,8 @@ window.Brief = (function () {
   }
 
   function plate(p, n, wide) {
+    /* Selected work prints its screenshot across the plate; also-built keeps
+       the same picture as a thumbnail beside the text. */
     const id = `brief-p-${p.id}`;
     /* what it is, when it was built, and where it stands: the bar carries the
        short version, the way a drawing sheet does */
@@ -273,10 +255,12 @@ window.Brief = (function () {
     /* the reason there is no demo is part of the drawing, so it is a note on
        it with a leader line, not small print underneath */
     const note = p.missing;
-    const shot = wide && p.visual;
+    const shot = p.visual;
+    /* the dimension line belongs under a full-width shot, but not beside a thumb */
+    const dimInFigure = wide && shot;
     const links = (p.links || []).map((l) => qLink(l.label, l.href)).join('');
 
-    return `<article class="plate" aria-labelledby="${id}" data-rise>
+    return `<article class="plate${!wide && shot ? ' plate--thumb' : ''}" aria-labelledby="${id}" data-rise>
         <div class="plate__box">
           <span class="plate__tick plate__tick--a" aria-hidden="true"></span>
           <span class="plate__tick plate__tick--b" aria-hidden="true"></span>
@@ -290,14 +274,14 @@ window.Brief = (function () {
                 ? `<figure class="plate__figure">
                     <span class="plate__img"><img src="${esc(p.visual.src)}" width="${p.visual.width}" height="${p.visual.height}"
                       alt="${esc(p.visual.alt)}" loading="lazy" decoding="async" /></span>
-                    ${p.measure ? measure(p.measure) : ''}
+                    ${dimInFigure && p.measure ? measure(p.measure) : ''}
                   </figure>`
                 : ''
             }
             <h3 class="plate__title" id="${id}">${esc(p.title)}</h3>
             ${hook(p)}
             <p class="plate__sub">${esc(wide ? p.subtitle : p.preview || p.subtitle)}</p>
-            ${!shot && p.measure ? measure(p.measure) : ''}
+            ${!dimInFigure && p.measure ? measure(p.measure) : ''}
             <p class="plate__stack"><span class="visually-hidden">Built with: </span>${dotted(p.stack)}</p>
             ${links ? `<p class="plate__links">${links}</p>` : ''}
           </div>
