@@ -1,5 +1,5 @@
 /* ==========================================================================
-   content.js — every fact on the site, written once.
+   content.js - every fact on the site, written once.
 
    The Brief, Meadow Desktop and Field Trip are three interfaces over this one
    file. Nothing here is written twice, and nothing here knows which of the

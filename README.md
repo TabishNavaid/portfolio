@@ -1,4 +1,4 @@
-# tabish navaid — three ways in
+# tabish navaid: three ways in
 
 The site boots like a small computer and asks *who's logging in?* Three
 profiles, one set of facts:

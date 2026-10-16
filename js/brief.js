@@ -1,5 +1,5 @@
 /* ==========================================================================
-   brief.js — The Brief
+   brief.js - The Brief
 
    Sheet 1 of a set of three. The Brief is drawn as a technical drawing: a
    bordered sheet on graph paper, a ruler across the top that is also the
