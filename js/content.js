@@ -31,8 +31,8 @@ window.PORTFOLIO = (function () {
 
   const PROFILE = {
     name: 'Tabish Navaid',
-    tagline: 'Aspiring software engineer building web apps, and the odd browser game',
-    taglinePlain: 'Aspiring software engineer building web apps, and the odd browser game',
+    tagline: 'Aspiring software engineer building web apps, and a few browser games',
+    taglinePlain: 'Aspiring software engineer building web apps, and a few browser games',
     school: 'Whitman College',
     degree: 'BA, Computer Science',
     minor: 'Mathematics',
