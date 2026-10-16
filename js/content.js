@@ -1,22 +1,19 @@
 /* ==========================================================================
-   content.js — one verified content model, read by all three modes.
+   content.js — every fact on the site, written once.
 
-   The Brief, Meadow Desktop and Field Trip render this file through three
-   different interfaces. Nothing is written twice.
+   The Brief, Meadow Desktop and Field Trip are three interfaces over this one
+   file. Nothing here is written twice, and nothing here knows which of the
+   three is reading it.
 
-   Provenance rules:
-     - The copy was rewritten for voice in September 2026. Every fact, number,
-       name and link from the earlier copy was kept, and nothing was added
-       that cannot be checked against the repositories or the site itself.
-     - Additions are limited to things that can be checked: real repository
-       and demo URLs, real screenshots, and points taken from Tabish's own
-       project READMEs.
-     - A fact nobody can check is `null` with a note, so the action disappears
-       instead of becoming a dead link. `LINKS.resume` is the main one: set it
-       to a path and every résumé action on the site appears.
-     - Meadow Desktop's personal lines (about, notes) keep the lowercase,
-       casual voice of the very first version of the site. Everything that
-       describes the work is written in ordinary sentence case.
+   House rules:
+     - A fact I cannot point at is `null` with a note, so the action
+       disappears instead of becoming a dead link. `LINKS.resume` is the one
+       that matters: set it to a path and every résumé action on the site
+       appears.
+     - No phone number, ever. Every visitor downloads this file.
+     - The desktop's personal lines (about, notes) stay lowercase and casual,
+       the way the first version of the site was. Anything that describes the
+       work is ordinary sentence case.
    ========================================================================== */
 
 window.PORTFOLIO = (function () {
@@ -34,10 +31,11 @@ window.PORTFOLIO = (function () {
 
   const PROFILE = {
     name: 'Tabish Navaid',
-    tagline: 'CS &amp; Math student building web apps, and the odd browser game',
-    taglinePlain: 'CS & Math student building web apps, and the odd browser game',
+    tagline: 'Aspiring software engineer building web apps, and the odd browser game',
+    taglinePlain: 'Aspiring software engineer building web apps, and the odd browser game',
     school: 'Whitman College',
-    degree: 'BA, Computer Science &amp; Mathematics',
+    degree: 'BA, Computer Science',
+    minor: 'Mathematics',
     classYear: 'Class of 2028',
     gpa: '3.98',
     location: 'Walla Walla, WA'
@@ -59,13 +57,24 @@ window.PORTFOLIO = (function () {
   };
 
   /* --- projects ----------------------------------------------------------
-     `openLabel` is the button that opens the detail window on Meadow Desktop.
-     It names something that window actually contains, so no two of them read
-     the same. Leave it out and the button falls back to a plain label. */
+     `openLabel` is the button that opens the detail window on Meadow Desktop,
+     and the question you open under each project in The Brief. It names
+     something that window actually contains, so no two of them read the same.
+     Leave it out and the button falls back to a plain label.
+
+     `kind` says what the thing is in a couple of words, and `state` is where
+     the thing stands in a few more. The bar across the top of each plate in
+     The Brief carries both. (`state` rather than `status`, because Field Trip's
+     panels already render a `status` field.)
+
+     `measure` is optional, and only for a real before-and-after pair: The Brief
+     draws it as a dimension line, `from` at one end and `to` at the other. */
 
   const PROJECTS = [
     {
       id: 'sos-lost-found',
+      state: 'rebuild in progress',
+      kind: 'campus web app',
       openLabel: 'how you prove it’s yours',
       title: 'SOS Lost & Found',
       featured: true,
@@ -97,7 +106,7 @@ window.PORTFOLIO = (function () {
         'Every push runs typecheck, lint, unit tests and a build, then Playwright, including an axe check that fails the build on serious accessibility problems.'
       ],
       learned:
-        'I went in thinking privacy would be a UI problem. It was really a database design problem, and once the schema was right, most of the UI decisions made themselves.',
+        'I went in thinking privacy was a UI problem. It was a schema problem. Pulling the answer out of the question’s table ended an argument I’d been having with myself in CSS for a week.',
       visual: {
         src: 'assets/images/work/sos-landing.webp',
         width: 1200,
@@ -109,11 +118,14 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'porchlight',
+      state: 'runs locally',
+      kind: 'audio engine',
       openLabel: 'how rendering got six times faster',
       title: 'Porchlight',
       featured: true,
       year: '2026',
       subtitle: 'Generative lofi that runs in the browser and writes hour-long WAV files from a seed.',
+      measure: { from: '3x realtime', to: '19.6x', label: 'render speed' },
       preview: 'Pick a seed and one of fourteen styles, and it writes the track in your browser with no server and no samples. The same seed gives you the same audio, down to the sample.',
       stack: ['TypeScript', 'Next.js', 'Web Audio', 'Tone.js', 'Vitest'],
       built: ['The generation engine', 'Offline WAV rendering', 'Fourteen style packs'],
@@ -149,6 +161,8 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'walla-walla-map',
+      state: 'live prototype',
+      kind: 'civic map',
       openLabel: 'why it uses demo data',
       title: 'Downtown Walla Walla Vacancy Map',
       featured: true,
@@ -190,6 +204,8 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'pond-hopper',
+      state: 'shipped',
+      kind: 'browser game',
       openLabel: 'why I rebuilt the ending',
       title: 'Pond Hopper',
       year: '2026',
@@ -232,6 +248,8 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'aakritam',
+      state: 'live, taking orders',
+      kind: 'storefront',
       openLabel: 'why you shop by collection',
       title: 'Aakritam',
       year: '2025',
@@ -267,6 +285,7 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'bloom',
+      kind: 'task app',
       openLabel: 'what happens when a restore fails',
       title: 'Bloom',
       year: '2026',
@@ -293,6 +312,7 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'this-site',
+      kind: 'portfolio',
       openLabel: 'how this site works',
       title: 'This Website',
       year: '2026',
@@ -327,6 +347,7 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'restaurant-management',
+      kind: 'coursework',
       openLabel: 'the three workflows',
       title: 'Restaurant Management App',
       year: '2025',
@@ -355,6 +376,7 @@ window.PORTFOLIO = (function () {
       org: 'Whitman College',
       role: 'Front-End & Accessibility Developer',
       date: 'Jan 2025–present',
+      measure: { from: '70%', to: '99.6%', label: 'accessibility score' },
       preview: 'I fix layouts and accessibility problems across the college’s 1000+ page website, and helped raise its accessibility score from 70% to 99.6%.',
       tags: ['HTML', 'CSS', 'Accessibility', 'CMS', 'QA'],
       whatIDid: [
@@ -421,18 +443,18 @@ window.PORTFOLIO = (function () {
 
   const ABOUT = {
     heading: 'Tabish Navaid',
-    sub: 'CS &amp; Math student @ Whitman College<br />Front-end web &amp; accessibility developer · Former intern @ Movate',
+    sub: 'Aspiring software engineer<br />CS student @ Whitman College · Former software developer intern @ Movate',
     intro:
-      'hi! i’m tabish. i build web things that are clear, practical, and pleasant to use. most of that is the stuff you don’t see: who’s allowed to see what, what happens when a save fails, and whether the next person can read my code. lately i’ve also been making a lofi music generator and a pixel game about a rabbit crossing a pond.',
+      'hi! i’m tabish. i build web things, and then spend most of my time on the parts you never see: who’s allowed to see what, what happens when a save fails, and whether the next person can read my code. lately i’ve also been making a lofi music generator and a pixel game about a rabbit crossing a pond.',
     doing: [
-      'build front-end pages, dashboards, and CMS features,',
+      'build web apps, dashboards, and CMS features,',
       'turn fuzzy ideas into user flows, a plan, and a clear list of what’s out of scope,',
       'work on civic tech, storefronts, accessibility fixes, and student-facing tools,',
       'tutor students in CS, math, writing, and technical skills, and',
       'help keep a thousand-page college website from turning into a mystery drawer.'
     ],
     education:
-      'Bachelor of Arts in Computer Science &amp; Mathematics<br />Whitman College, Walla Walla, WA · Class of 2028<br />GPA: 3.98 · UWC Davis Scholar (Full Scholarship)',
+      'Bachelor of Arts in Computer Science, Mathematics minor<br />Whitman College, Walla Walla, WA · Class of 2028<br />GPA: 3.98 · UWC Davis Scholar (Full Scholarship)',
     awards: ['UWC Davis Scholar (Full Scholarship)', 'Whitman Hackathon Winner · 1st Place', 'Lead ASWC Senator'],
     exploring: [
       'product management',
@@ -459,11 +481,11 @@ window.PORTFOLIO = (function () {
     },
     {
       q: 'cat status',
-      a: 'quality assurance, morale support, occasional foot traffic. every desktop needs someone small judging the hover states.'
+      a: 'quality assurance, morale support, and a fair amount of walking across the keyboard. no notes on this page so far.'
     },
     {
       q: 'favourite kind of work',
-      a: 'fiddly early decisions, like splitting one database field into two, writing “this is demo data” right on the page, or making a demo mode follow the same permissions as the real app. they’re small, but they save a lot of trouble later.'
+      a: 'fiddly early decisions: splitting one database field into two, writing “this is demo data” right on the page, making demo mode obey the same permissions as the real app. none of it shows up in a screenshot, and all of it decides how annoying the thing is in six months.'
     },
     {
       q: 'languages, and what else i care about',
@@ -490,7 +512,7 @@ window.PORTFOLIO = (function () {
   const CONTACT = {
     heading: 'send a tiny letter',
     body:
-      'Email is the best way to reach me. I’m always happy to hear about internships, front-end work, accessibility fixes, or anything other people will need to use after I’m done with it. I read every email and reply to most of them.'
+      'Email is the best way to reach me: software engineering internships, web projects, or anything other people will still have to use after I’m done with it. I read every email and reply to most of them.'
   };
 
   /* --- the brief ---------------------------------------------------------- */
@@ -544,7 +566,7 @@ window.PORTFOLIO = (function () {
           },
           fountain: {
             name: 'the fountain',
-            lines: ['Three coins at the bottom, and one bottle cap that’s been there a while.']
+            lines: ['The pump is on a timer and the timer is an hour out, so it runs at six in the morning.']
           },
           notice: {
             name: 'the notice board',
@@ -557,11 +579,11 @@ window.PORTFOLIO = (function () {
             }
           },
           mapsign: { name: 'the map sign', action: 'map', lines: ['The whole village on one board. There’s an easier-to-read version under the map button at the top.'] },
-          bench: { name: 'a bench', lines: ['Warm from the sun, and a good spot for a break.'] }
+          bench: { name: 'a bench', lines: ['Still warm, so somebody was sitting here a minute ago.'] }
         },
         npcs: {
           'npc-a': { name: 'a kid with a skateboard', lines: ['The workshop’s the one with the horseshoe over the door, east along South Lane. The trailer next to it is where the product stuff lives.', 'If you don’t feel like walking, press M. Same buildings, fewer steps.'] },
-          'npc-b': { name: 'someone waiting for the bus', lines: ['This bus goes back to the meadow. Stand by the door and it’ll take you.', 'It’s always a couple of minutes late.'] },
+          'npc-b': { name: 'someone waiting for the bus', lines: ['This bus goes back to the meadow. Stand by the door and it’ll take you.', 'Late most days, and nobody at this stop has ever looked worried about it.'] },
           'npc-c': { name: 'the arcade regular', lines: ['The arcade’s on the corner of South Lane. There are three cabinets in there now, and I’m bad at all of them.', 'There’s another game down at the pond. Follow the dirt lane east past the works yard and look for the sign.'] }
         }
       },
@@ -775,7 +797,7 @@ window.PORTFOLIO = (function () {
             L('live prototype', 'https://tabishnavaid.github.io/walla-walla-map/'),
             L('source', 'https://github.com/TabishNavaid/walla-walla-map')
           ] }] } },
-          aquarium: { name: 'the aquarium', lines: ['Four fish and a very noisy filter.'] }
+          aquarium: { name: 'the aquarium', lines: ['The filter is louder than four fish can possibly justify.'] }
         },
         npcs: {}
       },
@@ -785,7 +807,7 @@ window.PORTFOLIO = (function () {
         objects: {
           shelves: {
             name: 'the shelves',
-            lines: ['An umbrella, three left gloves, and a mug that says WORLD’S OKAYEST.']
+            lines: ['Mostly water bottles. One bike helmet with a name inked inside the strap.']
           },
           intake: {
             name: 'the intake desk',
@@ -864,7 +886,7 @@ window.PORTFOLIO = (function () {
               { kind: 'projects', ids: ['aakritam', 'restaurant-management'], lens: 'product' }
             ] }
           },
-          crate: { name: 'a crate of onions', lines: ['A crate of onions, sorted by size for some reason.'] }
+          crate: { name: 'a crate of onions', lines: ['A crate of onions, sorted by size. Whoever did that had a slow afternoon.'] }
         },
         npcs: {}
       },
@@ -883,7 +905,7 @@ window.PORTFOLIO = (function () {
               'Underneath, in smaller writing: “it was the base case.”'
             ]
           },
-          plant: { name: 'a very tall plant', lines: ['A very tall plant. It’s grown a lot since last term.'] }
+          plant: { name: 'a very tall plant', lines: ['The label says low light. It is in a south window and has not read the label.'] }
         },
         npcs: { 'npc-b': { name: 'a student', lines: ['I get help with data structures on Tuesdays. Tabish always makes me draw it out before I write any code, which is annoying, but it works.'] } }
       },
@@ -904,7 +926,7 @@ window.PORTFOLIO = (function () {
             L('LinkedIn', 'https://linkedin.com/in/tabish-navaid')
           ] }] } },
           addressbook: { name: 'the address book', panel: { title: 'all my contact details', sections: [{ kind: 'contact' }] } },
-          parcels: { name: 'the parcel shelf', lines: ['A parcel addressed to “the cat, the meadow.” It’s waiting for a paw print.'] },
+          parcels: { name: 'the parcel shelf', lines: ['A parcel marked out for delivery since Tuesday. It has not left this shelf.'] },
           computer: {
             name: 'the public computer',
             panel: { title: 'the other two profiles', sections: [
@@ -939,14 +961,14 @@ window.PORTFOLIO = (function () {
       },
 
       arcade: {
-        blurb: 'The arcade. Nothing in here is about work, I promise.',
+        blurb: 'The arcade. There is no résumé in here, which is the point of it.',
         objects: {
           cabinet: { name: 'CAT COURIER', action: 'arcade', game: 'courier', lines: ['Deliver parcels to the right doors before time runs out.'] },
           highscore: { name: 'the high score board', action: 'highscore' },
           machine1: { name: 'a racing cabinet', lines: ['Out of order. Someone’s left the steering wheel on the floor next to it.'] },
-          machine2: { name: 'BEAT STREET', action: 'arcade', game: 'beat', lines: ['The arrows still light up. It’s been playing the same eight bars since 2019, so at least you can learn them.'] },
-          machine3: { name: 'GRABBER', action: 'arcade', game: 'claw', lines: ['A claw machine full of plushies. The cat at the back is the heaviest one, and the hardest to win.'] },
-          prizes: { name: 'the prize shelf', lines: ['A keyring, a smaller keyring, and a poster of a fish.'] }
+          machine2: { name: 'BEAT STREET', action: 'arcade', game: 'beat', lines: ['The arrows still light up. It only knows eight bars, which is long enough to get good at eight bars.'] },
+          machine3: { name: 'GRABBER', action: 'arcade', game: 'claw', lines: ['A claw machine full of plushies. The claw has two settings, nearly and nearly.'] },
+          prizes: { name: 'the prize shelf', lines: ['Everything here costs more tickets than the machines hand out. That is the whole business model.'] }
         },
         npcs: {
           'npc-c': { name: 'the arcade regular', lines: ['I’ve had the top score on CAT COURIER for weeks. Go on, have a go.'] },
@@ -965,7 +987,7 @@ window.PORTFOLIO = (function () {
       { id: 'post-letter', label: 'open the letter desk', hint: 'Inside the post office on Market Row' }
     ],
     reward:
-      'That’s everything! You’ve now seen all of my work, just with a lot more walking than a PDF. Thanks for taking the long way round.',
+      'That is all of it: the same work as the PDF, considerably more walking. Thanks for taking the long way round.',
     rewardLine: 'Thanks for exploring. If you want to say hi, my email’s at the post office.'
   };
 
