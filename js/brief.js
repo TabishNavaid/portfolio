@@ -414,7 +414,6 @@ window.Brief = (function () {
           ${contact()}
         </main>
         <footer class="sheet__foot">
-          <p>built by hand. no framework, no build step.</p>
           <p>${esc(spec('brief').name)} &middot; sheet ${SHEET_OF}</p>
         </footer>
       </div>

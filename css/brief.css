@@ -793,6 +793,10 @@ html[data-mode='brief'] .skip-link:focus-visible {
   color: var(--faint);
 }
 
+/* the sheet number sits in the corner, the way a drawing's does, now that it
+   is the only thing left in the foot */
+#briefRoot .sheet__foot > p { margin-left: auto; }
+
 #briefRoot .sheet__foot::before { top: -5px; }
 #briefRoot .sheet__foot::after { bottom: -5px; }
 
