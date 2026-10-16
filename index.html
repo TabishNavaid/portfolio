@@ -55,6 +55,16 @@
       "sameAs": ["https://github.com/TabishNavaid", "https://linkedin.com/in/tabish-navaid"]
     }
   </script>
+
+  <!-- Vercel Web Analytics. The script is served by the platform at deploy
+       time, so /_vercel/insights/script.js 404s on a local http.server and on
+       any other host. That is harmless: it is deferred, nothing on the site
+       reads window.va, and the first-party script guard below only fires on
+       paths containing /js/, which this is not. -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 
 <body>
