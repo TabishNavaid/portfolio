@@ -64,7 +64,7 @@
   /* Lazy mode files change often while the three experiences are being tuned.
      A version on those URLs prevents an older cached game.js from loading
      beside a newer modes.js and then failing to register its profile. */
-  const ASSET_VERSION = '20261016-lockscreen';
+  const ASSET_VERSION = '20261017-inktiles';
   const BOOT_MS = 780;
   /* matches --curtain in css/styles.css and CURTAIN in the game */
   const CURTAIN_MS = 200;

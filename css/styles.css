@@ -288,6 +288,10 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   --night-opacity: 0;
   --sun-opacity: 1;
   --sun-scale: 1;
+  /* main.js lengthens these as the sun gets low, and leaves them behind */
+  --shadow-x: 10px;
+  --shadow-y: 13px;
+  --scene-shadow: rgba(49, 67, 76, 0.17);
 }
 
 .boot[hidden] { display: none; }
@@ -472,7 +476,7 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   gap: clamp(9px, 1.5vw, 18px);
   width: 100%;
   max-width: 860px;
-  margin: 13px 0 0;
+  margin: 19px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -549,22 +553,45 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   white-space: nowrap;
 }
 
-/* On the lock screen the same component stands up as a card, like an account
-   on a login screen. Scoped to #chooserList so 404.html keeps its rows. */
+/* On the lock screen the same component stands up as an account tile. It is
+   drawn the way the old chooser window was and the way the meadow's windows
+   still are: a 2.5px ink outline and a hard offset shadow with no blur, in
+   the same colour. Scoped to #chooserList so 404.html keeps its rows. */
 #chooserList .profile {
+  --tile-shadow-x: 7px;
+  --tile-shadow-y: 9px;
+
+  position: relative;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
   justify-items: center;
   gap: 0;
-  padding: 17px 13px 19px;
-  border-color: rgba(45, 44, 41, 0.14);
-  background: color-mix(in srgb, #fdfaf2 80%, transparent);
-  box-shadow: 0 6px 16px rgba(49, 67, 76, 0.1);
+  padding: 18px 13px 20px;
+  border: 2.5px solid #2d2c29;
+  border-radius: var(--radius);
+  background: #fdfaf2;
+  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 var(--scene-shadow);
   text-align: center;
+  transition: background 0.18s ease, box-shadow 0.2s ease, transform 0.14s ease;
 }
 
-#chooserList .profile:hover,
-#chooserList .profile:focus-visible { background: color-mix(in srgb, #d96e34 10%, #fdfaf2); }
+/* the shadow lengthens as if the tile had lifted off the paper */
+#chooserList .profile:is(:hover, :focus-visible) {
+  --tile-shadow-x: 10px;
+  --tile-shadow-y: 13px;
+  background: color-mix(in srgb, #d96e34 10%, #fdfaf2);
+}
+
+#chooserList .profile:active { --tile-shadow-x: 5px; --tile-shadow-y: 6px; }
+
+/* The ring stands further off here than the site's default 3px. A tile now
+   has its own 2.5px ink border, and at the default offset the orange sits
+   right against it and the two read as one thick brown line. A wider gap
+   puts sky between them, so the ring is legible as a ring. */
+#chooserList .profile:focus-visible { outline-offset: 5px; }
+
+/* and the drawing on it lifts a few pixels rather than swelling */
+#chooserList .profile:is(:hover, :focus-visible) .profile__avatar { transform: translateY(-4px); }
 
 #chooserList .profile__avatar {
   grid-row: auto;
@@ -575,11 +602,20 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
 #chooserList .profile__name { align-self: auto; margin-top: 11px; }
 #chooserList .profile__sub { align-self: auto; max-width: 25ch; margin-top: 5px; font-size: 12.5px; }
 
-/* the badge drops under the name rather than running off a centred tile */
+/* Out of the text flow and pinned to the corner like a sticker, so all three
+   tiles hold exactly the same rows and come out the same height. It stays the
+   same ::after carrying the same words, so it is announced as it was. */
 #chooserList .profile.is-last .profile__name::after {
-  display: block;
-  width: fit-content;
-  margin: 6px auto 0;
+  position: absolute;
+  top: -11px;
+  right: -10px;
+  margin: 0;
+  padding: 3px 9px;
+  border: 2px solid #2d2c29;
+  background: #fdfaf2;
+  box-shadow: 2px 3px 0 var(--scene-shadow);
+  opacity: 1;
+  transform: rotate(-3deg);
 }
 
 .chooser__foot {
@@ -588,6 +624,36 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   font-size: 11px;
   text-align: center;
   opacity: 0.6;
+}
+
+/* --- desktop: the meadow takes a third of the screen ---------------------
+   The hills are grown only here. .grass-far and .grass-near are the meadow's
+   own classes and Meadow Desktop draws its own scene with them, so the taller
+   values are scoped to .lock__scene; the phone layout keeps the shorter
+   originals. */
+
+@media (min-width: 620px) {
+  .lock__scene .grass-far { height: 34%; }
+  .lock__scene .grass-near { height: 25%; }
+
+  /* sitting up on the near hill rather than down at the frame's edge */
+  .lock__cat { bottom: 4%; right: 5%; width: clamp(118px, 12.5vw, 172px); }
+
+  /* The column drops toward the horizon so the tiles meet the grass instead
+     of leaving a band of empty sky under them. */
+  .lock__panel { padding-top: clamp(18px, 5vh, 64px); }
+
+  /* one line at 1440 and at 1280, and balanced rather than ragged below that */
+  .lock__tagline { max-width: 560px; text-wrap: balance; }
+}
+
+@media (min-width: 620px) and (max-height: 860px) {
+  .lock__panel { padding-top: clamp(6px, 2vh, 26px); }
+  .lock__avatar { width: clamp(80px, 11vh, 104px); }
+  .lock__name { margin-top: 10px; font-size: clamp(26px, 3.4vw, 36px); }
+  .lock__tagline { margin-top: 7px; }
+  .lock__prompt { margin-top: clamp(10px, 2vh, 20px); }
+  .chooser__list { margin-top: 15px; }
 }
 
 /* --- phones: the tiles become rows again --- */
@@ -609,11 +675,24 @@ html.dark .noise-overlay { opacity: 0.05; mix-blend-mode: overlay; }
   #chooserList .profile__name { align-self: end; margin-top: 0; }
   #chooserList .profile__sub { align-self: start; max-width: none; margin-top: 0; }
 
+  /* Back in the text flow on a row, where there is width for it beside the
+     name. The desktop rule pins it to the corner as a sticker, so every one
+     of those properties has to come back off here. */
   #chooserList .profile.is-last .profile__name::after {
+    position: static;
     display: inline;
     width: auto;
     margin: 0 0 0 8px;
+    padding: 2px 7px;
+    border: 1px solid rgba(45, 44, 41, 0.3);
+    background: none;
+    box-shadow: none;
+    opacity: 0.7;
+    transform: none;
   }
+
+  /* the tiles keep the ink and the hard shadow, but not the desktop spacing */
+  .chooser__list { margin-top: 13px; }
 
   .lock__cat { width: 92px; right: 2%; }
   .lock__sun { width: 58px; height: 58px; top: 6%; right: 8%; }
@@ -2341,7 +2420,8 @@ html.dark .lens__option input:focus-visible + span { outline-color: var(--accent
   .profile-peek img { animation: none !important; }
 
   .profile:hover .profile__avatar,
-  .profile:focus-visible .profile__avatar { transform: none; }
+  .profile:focus-visible .profile__avatar,
+  #chooserList .profile:is(:hover, :focus-visible) .profile__avatar { transform: none; }
 
   .celestial { transition: none !important; }
 }
