@@ -124,14 +124,14 @@ window.PORTFOLIO = (function () {
     },
     {
       id: 'emberwing',
-      state: 'debuts 5 November at Symphonicon',
+      state: 'ran at Symphonicon, 213+ players',
       kind: 'lobby installation',
       openLabel: 'why nobody can lose',
       title: 'Emberwing: The Way Home',
       featured: true,
       year: '2026',
       subtitle:
-        'A lobby game for the Walla Walla Symphony’s Symphonicon, played on a projector with a motion-capture lantern.',
+        'A lobby game for the Walla Walla Symphony’s Symphonicon, played on a projector with a motion-capture lantern. It ran on 5 November and more than 213 people played it.',
       preview:
         'You are the lighthouse keeper. Point your light into the fog to find a lost baby dragon, then guide it home through a string of hoops. A run takes about 45 seconds.',
       stack: ['JavaScript', 'Canvas 2D', 'Vite', 'WebSockets'],
@@ -143,11 +143,11 @@ window.PORTFOLIO = (function () {
         'A light cursor fed by a motion-capture lantern prop, a mouse, or a phone, with corner calibration for the rig',
         'A flock that accumulates over the evening, with every dragon that gets home leaving a ribbon in the aurora',
         'An operator layer: fullscreen, scene skip, a debug overlay, reduced motion, and a QR code so a queue can play on their own phones',
-        'A smoke test that checks the preview build still plays end to end'
+        'A smoke test that checks the deployed build still plays end to end'
       ],
       techStack: 'JavaScript, Canvas 2D, Vite, WebSockets, GitHub Actions, GitHub Pages',
       productDecisions: [
-        'Nobody can lose. Hitting something makes the dragon tumble and carry on, because a lobby game that fails you in front of a queue does not get a second player.',
+        'Nobody can lose. Hitting something makes the dragon tumble and carry on, because a lobby game that fails you in front of a queue does not get a second player. On the night some people came back for another run, which is the only evidence for that I have.',
         'When the start screen returns it ignores the light for two seconds, and a light left resting on a level has to move off it and back before it counts. Otherwise the next guest inherits whatever the last one was pointing at.',
         'Nothing needs a click: every control is “hold the light here” and a ring fills, which is the only gesture a lantern prop can make.'
       ],
@@ -166,11 +166,11 @@ window.PORTFOLIO = (function () {
         alt: 'The Emberwing attract screen: a pixel lighthouse sweeping its beam over a stormy sea at a small pink dragon, beside three level rings reading Hatchling, Flier and Storm Rider.'
       },
       links: [
-        { label: 'Preview build', href: 'https://tabishnavaid.github.io/emberwing/' },
+        { label: 'Play it', href: 'https://tabishnavaid.github.io/emberwing/' },
         { label: 'GitHub', href: 'https://github.com/TabishNavaid/emberwing' }
       ],
       missing:
-        'Not released. It debuts in the Cordiner Hall lobby before the Walla Walla Symphony’s Symphonicon on 5 November, and the link above is the preview build, not a finished release.'
+        'The link is the build that ran that night, without the room around it: you steer with a mouse or a finger instead of the lantern, and the flock starts empty, because a night clears itself the next day.'
     },
     {
       id: 'sos-lost-found',
